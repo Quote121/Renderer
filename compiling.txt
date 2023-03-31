@@ -1,9 +1,0 @@
-x86_64-w64-mingw32-gcc.exe -c -I"D:\git\Renderer\include" -m64 -o glad.o src/glad.c
-
-x86_64-w64-mingw32-g++.exe -c -std=c++20 -I"D:\git\Renderer\include" -I"C:\msys64\mingw64\include" -L"D:\git\Renderer\libs" -L"C:\msys64\mingw64\lib" -m64 -o textures.o src/textures.cpp
-
-x86_64-w64-mingw32-g++.exe -c -std=c++20 -I"D:\git\Renderer\include" -I"C:\msys64\mingw64\include" -L"D:\git\Renderer\libs" -L"C:\msys64\mingw64\lib" -m64 -o stb.o src/stb_image.cpp
-
-x86_64-w64-mingw32-g++.exe -m64 -o tex textures.o glad.o stb.o -lopengl32 "D:\git\Renderer\libs\libglfw3.a" -lgdi32
-
-These 4 commands will compile the program fully
