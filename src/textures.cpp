@@ -160,37 +160,6 @@ float verticesForSquare[] = {
 };
 
 glm::vec3 cubePositions[] = {
-    
-    // Scary spider
-    //Hor
-    //glm::vec3(0.0f,   0.0f,  0.0f),
-    //glm::vec3(1.0f,   0.0f,  0.0f),
-    //glm::vec3(2.0f,   0.0f,  0.0f),
-    //glm::vec3(3.0f,   0.0f,  0.0f),
-    //glm::vec3(4.0f,   0.0f,  0.0f),
-    // //Ver
-    //glm::vec3(2.0f,   -1.0f,  0.0f),
-    //glm::vec3(2.0f,   -2.0f,  0.0f),
-    //glm::vec3(2.0f,   1.0f,  0.0f),
-    //glm::vec3(2.0f,   2.0f,  0.0f),
-
-    //// top right
-    //glm::vec3(3.0f,   2.0f,  0.0f),
-    //glm::vec3(4.0f,   2.0f,  0.0f),
-    //
-    //// bottom left
-    //glm::vec3(1.0f,   -2.0f,  0.0f),
-    //glm::vec3(0.0f,   -2.0f,  0.0f),
-
-    //// left up
-    //glm::vec3(0.0f,   1.0f,  0.0f),
-    //glm::vec3(0.0f,   2.0f,  0.0f),
-
-    ////right down
-    //glm::vec3(4.0f,   -1.0f,  0.0f),
-    //glm::vec3(4.0f,   -2.0f,  0.0f),
-
-
 
     glm::vec3(2.0f,   5.0f, -15.0f),
     glm::vec3(-1.5f, -2.2f, -2.5f),
