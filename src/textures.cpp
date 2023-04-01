@@ -83,7 +83,6 @@ glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // MACOSX
 GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, windowTitle, NULL, NULL);
 // ViewPort tell openGL the size of the rendering window
 // First 2 params are where the window will be created
-Camera* c = new Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 
 
 if (window == NULL){
@@ -281,7 +280,9 @@ ourShader.setInt("texture2", 1);
 // Z buffer for displaying correct trianges
 glEnable(GL_DEPTH_TEST);
 
-
+// Removes the backfaces of faces
+// however the cubes in the current state are not correct, normals wrong way
+glEnable(GL_CULL_FACE);
 
 
 // Get matrix of view
@@ -376,7 +377,7 @@ void processInput(GLFWwindow* window) {
 
     // Quit button
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        std::cout << "GLFW_KEY_ESCAPE was pressed. Closing..." << std::endl;
+        std::cout << "\nGLFW_KEY_ESCAPE was pressed. Closing..." << std::endl;
         glfwSetWindowShouldClose(window, true);
     }
 

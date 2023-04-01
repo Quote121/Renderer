@@ -1,18 +1,15 @@
 # By default the 32 bit version will be compiled unless specifed in build commands
+#  
+# For setting release mode to 64-bit use the MODE=64 when using make
+# e.g. make MODE=64 run
 # 
-
-
-# ifeq ($(OS),Windows_NT) # 32 bit compiler (Compatability)
-# 	CC = i686-w64-mingw32-g++.exe
-# 	CXX =
-# 	CFLAGS = -m32
-# 	CXXFLAGS = -std=c++20 -Wall -Wextra -g
-# else # unix
-# 	CC = gcc
-# 	CXX = g++
-# 	CFLAGS = -m32 -Wall -Wextra
-# 	CXXFLAGS = -std=c++20 -Wall -g -w32
-# endif
+# For debug mode use DEBUG=1 in the same way as MODE
+# 
+# clean to clean release folder of .o and exe
+#
+# Here by default the code compiles with static libraries. Dynamic library compilation is not done yet
+#
+# TODO : dynamic library compiation
 
 CFLAGS = -m32 -Wall -Wextra
 CXXFLAGS = -std=c++20 -Wall -Wextra
@@ -23,7 +20,7 @@ ifeq ($(MODE), 64)
 	GLFWVER = GLFW_64
 	CC = gcc
 	CXX = g++
-	CFLAGS := $(filter-out -m32, $(CXXFLAGS))
+	CFLAGS := $(filter-out -m32, $(CFLAGS))
 	CXXFLAGS := $(filter-out -m32, $(CXXFLAGS))
 ## Building for 32 bit
 else
@@ -67,12 +64,6 @@ LIBFLAGS += -lgdi32
 INCLUDEPATHS = -I$(CURDIR)/include
 LIBRARYPATHS = -L$(CURDIR)/libs/$(GLFWVER)
 
-
-# ifeq ($(MODE), 64)
-# 	$(info ===========32-bit============)
-# else
-# 	$(info ===========64-bit============)
-# endif
 $(info =============================)
 $(info CFLAGS : $(CFLAGS))
 $(info CXXFLAGS : $(CXXFLAGS))
@@ -84,7 +75,12 @@ $(info INCLUDEPATHS : $(INCLUDEPATHS))
 $(info LIBRARYPATHS : $(LIBRARYPATHS))
 $(info =============================)
 
-all: $(TARGET)
+# make compile
+compile: $(TARGET)
+
+#make run
+run: compile $(TARGET)
+	$(TARGET)
 
 # $^ is prerequisits (c objs and cpp objs)
 # $@ is target
@@ -96,7 +92,8 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDEPATHS) -c $< -o $@ 
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(FLAGS) $(INCLUDEPATHS) $(LIBRARYPATHS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDEPATHS) $(LIBRARYPATHS) -c $< -o $@
+
 
 clean:
 	rm -f $(BUILDDIR)/*.o $(TARGET)
