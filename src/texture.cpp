@@ -1,6 +1,6 @@
 #include "texture.hpp"
 
-void Texture::loadTexture(const char *path, unsigned int &textureID, GLint format)
+void Texture::loadTexture(const char *path, unsigned int &textureID, GLenum format)
 {
     // no of textures, gens id
     glGenTextures(1, &textureID);

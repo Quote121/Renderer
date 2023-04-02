@@ -18,7 +18,7 @@ public:
     // void
     // updates textureID that is passed by reference
     ///////////////////////////
-    static void loadTexture(const char *path, unsigned int &textureID, GLint format);
+    static void loadTexture(const char *path, unsigned int &textureID, GLenum format);
     
     ////////////////////////////
     // Method used to activate and bind textures

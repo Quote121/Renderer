@@ -38,316 +38,391 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void getCamPosTest(Camera* camera);
 
+void joystick_callback(int jid, int event);
+
+// Window constatns
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
+const char* windowTitle = "OpenGL learning";
 
-
+// Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-//glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-//glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-
-
-
 float cameraYaw = -90.0f;
 float cameraPitch = 0.0f;
 float cameraFov = 45.0f;
 
-bool firstMouse = true;
 
 // Mouse position data (center of the screen by init
 float lastX = WINDOW_WIDTH / 2.0f, lastY = WINDOW_HEIGHT / 2.0f;
+bool firstMouse = true;
 
-
+// Frame vars
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-const char* windowTitle = "OpenGL learning";
 
 int main() {
-// Initalise GLFW for the window
-glfwInit();
-glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Spec what the window should have
-glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6); // Setting to version 4.6
-glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // MACOSX
-#endif
+    // Initalise GLFW for the window
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Spec what the window should have
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6); // Setting to version 4.6
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    #ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // MACOSX
+    #endif
 
-// PAGE 20
+    // PAGE 20
 
-// Create the window assign it to var window
-GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, windowTitle, NULL, NULL);
-// ViewPort tell openGL the size of the rendering window
-// First 2 params are where the window will be created
-
-
-if (window == NULL){
-    // Error
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return -1;
-}
-glfwMakeContextCurrent(window);
-// Telling open gl that we wanth the resize callback funtion to be called on window when its resized
-glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-// Hide cursor and capture its input
-glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-glfwSetCursorPosCallback(window, mouse_callback);
-glfwSetScrollCallback(window, scroll_callback);
-
-// Initalise GLAD
-if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-{
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    glfwTerminate();
-    return -1;
-}
-glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-Shader ourShader("assets/shaders/shader1.vs", "assets/shaders/shader1.fs");
+    // Create the window assign it to var window
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, windowTitle, NULL, NULL);
+    // ViewPort tell openGL the size of the rendering window
+    // First 2 params are where the window will be created
 
 
-// Now we are mapping a cube, this will require 6 faces, each face will make up 6 vertexes as there are 2 triangles.
-// We are not using indexes and ebos here so there are 6 vertexes for each face instead of 4
-// in total that is 6faces * 2Trianges * 3Vertexes therefore 36 vertices.
+    if (window == NULL){
+        // Error
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    // Telling open gl that we wanth the resize callback funtion to be called on window when its resized
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    // Hide cursor and capture its input
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
+    //////////////////
+    //
+    // Gamepad
+    //
+    //////////////////
+    int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+    std::cout << "Present" << present << std::endl;
+    glfwSetJoystickCallback(joystick_callback);
 
-// Texture coords (4th and 5th) are relative to the triangle/square
-float verticesForSquare[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
-};
-
-	// Verticies with normals and textures
-	float verticesWithNormal[]{
-	// positions			// normals				
-	-0.5f, -0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
-	 0.5f, -0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
-	 0.5f,  0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
-	 0.5f,  0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
-	-0.5f,  0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
-	-0.5f, -0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
-	-0.5f, -0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
-	 0.5f, -0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
-	 0.5f,  0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
-	 0.5f,  0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
-	-0.5f,  0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
-	-0.5f, -0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
-	-0.5f,  0.5f,  0.5f,	-1.0f,  0.0f,  0.0f,	
-	-0.5f,  0.5f, -0.5f,	-1.0f,  0.0f,  0.0f,	
-	-0.5f, -0.5f, -0.5f,	-1.0f,  0.0f,  0.0f,	
-	-0.5f, -0.5f, -0.5f,	-1.0f,  0.0f,  0.0f,	
-	-0.5f, -0.5f,  0.5f,	-1.0f,  0.0f,  0.0f,	
-	-0.5f,  0.5f,  0.5f,	-1.0f,  0.0f,  0.0f,	
-	 0.5f,  0.5f,  0.5f,	 1.0f,  0.0f,  0.0f,	
-	 0.5f,  0.5f, -0.5f,	 1.0f,  0.0f,  0.0f,	
-	 0.5f, -0.5f, -0.5f,	 1.0f,  0.0f,  0.0f,	
-	 0.5f, -0.5f, -0.5f,	 1.0f,  0.0f,  0.0f,	
-	 0.5f, -0.5f,  0.5f,	 1.0f,  0.0f,  0.0f,	
-	 0.5f,  0.5f,  0.5f,	 1.0f,  0.0f,  0.0f,	
-	-0.5f, -0.5f, -0.5f,	 0.0f, -1.0f,  0.0f,	
-	 0.5f, -0.5f, -0.5f,	 0.0f, -1.0f,  0.0f,	
-	 0.5f, -0.5f,  0.5f,	 0.0f, -1.0f,  0.0f,	
-	 0.5f, -0.5f,  0.5f,	 0.0f, -1.0f,  0.0f,	
-	-0.5f, -0.5f,  0.5f,	 0.0f, -1.0f,  0.0f,	
-	-0.5f, -0.5f, -0.5f,	 0.0f, -1.0f,  0.0f,	
-	-0.5f,  0.5f, -0.5f,	 0.0f,  1.0f,  0.0f,	
-	 0.5f,  0.5f, -0.5f,	 0.0f,  1.0f,  0.0f,	
-	 0.5f,  0.5f,  0.5f,	 0.0f,  1.0f,  0.0f,	
-	 0.5f,  0.5f,  0.5f,	 0.0f,  1.0f,  0.0f,	
-	-0.5f,  0.5f,  0.5f,	 0.0f,  1.0f,  0.0f,	
-	-0.5f,  0.5f, -0.5f,	 0.0f,  1.0f,  0.0f,	
-	};
-
-glm::vec3 cubePositions[] = {
-
-    glm::vec3(2.0f,   5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f,  -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3(1.3f,  -2.0f, -2.5f),
-    glm::vec3(1.5f,   2.0f, -2.5f),
-    glm::vec3(1.5f,   0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-};
-
-
-std::cout << "Float size: " << sizeof(float) << " bytes" << std::endl;
-
-// Page 29
-// VAO are used to store the attribute data of the vbos
-// For several triangles more than 1 vao and vbo can be created
-unsigned int VBO, VAO;
-
-glGenVertexArrays(1, &VAO);
-glGenBuffers(1, &VBO);
-//glGenBuffers(1, &EBO);
-
-// bind the vertex array object then the vertex buffer then config vertex attributes
-glBindVertexArray(VAO);
-
-glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the VBO object to the vertex buffer array
-glBufferData(GL_ARRAY_BUFFER, sizeof(verticesForSquare), verticesForSquare, GL_STATIC_DRAW); // Passin IN to the shader the verticies aPos is vertices
-
-//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-
-
-glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-glEnableVertexAttribArray(1);
-
-
-
-//// We now need to tell opengl how to sample the textures
-unsigned int texture1, texture2;
-
-Texture::loadTexture("assets/textures/missing.jpg", texture1, GL_RGB);
-Texture::loadTexture("assets/textures/trollface.png", texture2, GL_RGBA);
-
-ourShader.use(); // activate before uniforms (activate the fragment and vertex shader then we can alter uniforms)
-// this is setting unifroms
-ourShader.setInt("texture1", 0); 
-ourShader.setInt("texture2", 1);
-
-// 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
-
-// Z buffer for displaying correct trianges
-glEnable(GL_DEPTH_TEST);
-
-// Removes the backfaces of faces
-// however the cubes in the current state are not correct, normals wrong way
-// glEnable(GL_CULL_FACE);
-
-
-// Get matrix of view
-glm::vec3 direction;
-direction.x = cos(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
-direction.y = sin(glm::radians(cameraPitch));
-direction.z = sin(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
-
-
-int fpsSampCount = 0;
-float fpsSum = 0;
-
-// Render loop to keep rendering until the program is closed
-// If GLFW has been instructed to close then run this function
-while (!glfwWindowShouldClose(window)){
-
-    float currentFrame = (float)glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-
-    // Call the input processer each loop to check if the esc key is pressed
-    processInput(window);
-
-    // Clearing colour buffer
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // bind textures on corresponding texture units
-    Texture::activateTexture(texture1, 0);
-    Texture::activateTexture(texture2, 1);
+    // glfwSwapInterval(0); // This will disable vsync and remove frame rate cap
     
-    // Activate shader
-    ourShader.use();
 
-    // Print fps and coords
-    const int sampleSize = 100;
-    fpsSum += (1 / deltaTime);
-    fpsSampCount += 1;
-    if (fpsSampCount == sampleSize) {
-        std::cout << ceil((int)(fpsSum / sampleSize * 10)) / 10 << " fps " <<
-            "LastX|LastY: " << camera.Pitch << " | " << camera.Yaw <<
-            "[x,y,z] : " << camera.GetPositionCoords() << "                   "
-            << '\r';
-        fpsSum = 0; fpsSampCount = 0;
+    // Initalise GLAD
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    Shader ourShader("assets/shaders/texture/shader1.vs", "assets/shaders/texture/shader1.fs");
+
+
+    // Now we are mapping a cube, this will require 6 faces, each face will make up 6 vertexes as there are 2 triangles.
+    // We are not using indexes and ebos here so there are 6 vertexes for each face instead of 4
+    // in total that is 6faces * 2Trianges * 3Vertexes therefore 36 vertices.
+
+
+
+    // Texture coords (4th and 5th) are relative to the triangle/square
+    float verticesForSquare[] = {
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+            0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
+            0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
+    };
+
+        // Verticies with normals and textures
+        float verticesWithNormal[]{
+        // positions			 // normals				
+       -0.5f, -0.5f, -0.5f,	     0.0f,  0.0f, -1.0f,	
+        0.5f, -0.5f, -0.5f,	     0.0f,  0.0f, -1.0f,	
+        0.5f,  0.5f, -0.5f,	     0.0f,  0.0f, -1.0f,	
+        0.5f,  0.5f, -0.5f,	     0.0f,  0.0f, -1.0f,	
+       -0.5f,  0.5f, -0.5f,	     0.0f,  0.0f, -1.0f,	
+       -0.5f, -0.5f, -0.5f,	     0.0f,  0.0f, -1.0f,	
+       -0.5f, -0.5f,  0.5f,	     0.0f,  0.0f,  1.0f,	
+        0.5f, -0.5f,  0.5f,	     0.0f,  0.0f,  1.0f,	
+        0.5f,  0.5f,  0.5f,	     0.0f,  0.0f,  1.0f,	
+        0.5f,  0.5f,  0.5f,	     0.0f,  0.0f,  1.0f,	
+       -0.5f,  0.5f,  0.5f,	     0.0f,  0.0f,  1.0f,	
+       -0.5f, -0.5f,  0.5f,	     0.0f,  0.0f,  1.0f,	
+       -0.5f,  0.5f,  0.5f,	    -1.0f,  0.0f,  0.0f,	
+       -0.5f,  0.5f, -0.5f,	    -1.0f,  0.0f,  0.0f,	
+       -0.5f, -0.5f, -0.5f,	    -1.0f,  0.0f,  0.0f,	
+       -0.5f, -0.5f, -0.5f,	    -1.0f,  0.0f,  0.0f,	
+       -0.5f, -0.5f,  0.5f,	    -1.0f,  0.0f,  0.0f,	
+       -0.5f,  0.5f,  0.5f,	    -1.0f,  0.0f,  0.0f,	
+        0.5f,  0.5f,  0.5f,	     1.0f,  0.0f,  0.0f,	
+        0.5f,  0.5f, -0.5f,	     1.0f,  0.0f,  0.0f,	
+        0.5f, -0.5f, -0.5f,	     1.0f,  0.0f,  0.0f,	
+        0.5f, -0.5f, -0.5f,	     1.0f,  0.0f,  0.0f,	
+        0.5f, -0.5f,  0.5f,	     1.0f,  0.0f,  0.0f,	
+        0.5f,  0.5f,  0.5f,	     1.0f,  0.0f,  0.0f,	
+       -0.5f, -0.5f, -0.5f,	     0.0f, -1.0f,  0.0f,	
+        0.5f, -0.5f, -0.5f,	     0.0f, -1.0f,  0.0f,	
+        0.5f, -0.5f,  0.5f,	     0.0f, -1.0f,  0.0f,	
+        0.5f, -0.5f,  0.5f,	     0.0f, -1.0f,  0.0f,	
+       -0.5f, -0.5f,  0.5f,	     0.0f, -1.0f,  0.0f,	
+       -0.5f, -0.5f, -0.5f,	     0.0f, -1.0f,  0.0f,	
+       -0.5f,  0.5f, -0.5f,	     0.0f,  1.0f,  0.0f,	
+        0.5f,  0.5f, -0.5f,	     0.0f,  1.0f,  0.0f,	
+        0.5f,  0.5f,  0.5f,	     0.0f,  1.0f,  0.0f,	
+        0.5f,  0.5f,  0.5f,	     0.0f,  1.0f,  0.0f,	
+       -0.5f,  0.5f,  0.5f,	     0.0f,  1.0f,  0.0f,	
+       -0.5f,  0.5f, -0.5f,	     0.0f,  1.0f,  0.0f,	
+       };
+
+    glm::vec3 cubePositions[] = {
+
+        glm::vec3(2.0f,   5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f,  -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f,  -2.0f, -2.5f),
+        glm::vec3(1.5f,   2.0f, -2.5f),
+        glm::vec3(1.5f,   0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
+    // Page 29
+    // VAO are used to store the attribute data of the vbos
+    // For several triangles more than 1 vao and vbo can be created
+    unsigned int VBO, VAO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    //glGenBuffers(1, &EBO);
+
+    // bind the vertex array object then the vertex buffer then config vertex attributes
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the VBO object to the vertex buffer array
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesForSquare), verticesForSquare, GL_STATIC_DRAW); // Passin IN to the shader the verticies aPos is vertices
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0); // This enables the attribute we just defined above this can also be called before
+
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+
+    //// We now need to tell opengl how to sample the textures
+    unsigned int texture1, texture2;
+
+    Texture::loadTexture("assets/textures/missing.jpg", texture1, GL_RGB);
+    Texture::loadTexture("assets/textures/trollface.png", texture2, GL_RGBA);
+
+    ourShader.use(); // activate before uniforms (activate the fragment and vertex shader then we can alter uniforms)
+    // this is setting unifroms
+    ourShader.setInt("texture1", 0); 
+    ourShader.setInt("texture2", 1);
+
+    // 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
+
+    // Z buffer for displaying correct trianges
+    glEnable(GL_DEPTH_TEST);
+
+    // Removes the backfaces of faces
+    // however the cubes in the current state are not correct, normals wrong way
+    // glEnable(GL_CULL_FACE);
+
+
+    // Get matrix of view
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
+    direction.y = sin(glm::radians(cameraPitch));
+    direction.z = sin(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
+
+
+    int fpsSampCount = 0;
+    float fpsSum = 0;
+
+    // Render loop to keep rendering until the program is closed
+    // If GLFW has been instructed to close then run this function
+    while (!glfwWindowShouldClose(window)){
+
+        // TODO change to double
+        float currentFrame = (float)glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        // Call the input processer each loop to check if the esc key is pressed
+        processInput(window);
+
+        // Clearing colour buffer
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // bind textures on corresponding texture units
+        Texture::activateTexture(texture1, 0);
+        Texture::activateTexture(texture2, 1);
+        
+        // Activate shader
+        ourShader.use();
+
+        // Print fps and coords
+        const int sampleSize = 100;
+        fpsSum += (1 / deltaTime);
+        fpsSampCount += 1;
+        if (fpsSampCount == sampleSize) {
+            // std::cout << ceil((int)(fpsSum / sampleSize * 10)) / 10 << " fps " <<
+            //     "LastX|LastY: " << camera.Pitch << " | " << camera.Yaw <<
+            //     "[x,y,z] : " << camera.GetPositionCoords() << "                   "
+            //     << '\r';
+            fpsSum = 0; fpsSampCount = 0;
+        }
+
+
+        // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
+        //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
+        // FOV, aspect ratio (width/height), near distance, far distance
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+
+        // Setting up the uniform variables to pass to the fragment shader
+        ourShader.setMat4("view", view);
+        ourShader.setMat4("projection", projection);
+
+        //glBindVertexArray(VAO);
+        // Pass each model 1 by 1 to render all 10
+        unsigned int arraySize = (sizeof(cubePositions) / sizeof(cubePositions[0]));
+        for (unsigned int i = 0; i < arraySize; i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            
+            ourShader.setMat4("model", model);
+            // Gl draw arrays is used if an index buffer is not present
+            // gl draw elements is used if elements are used
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            
+        }
+
+        // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
+    // Deallocate
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    //glDeleteBuffers(1, &EBO);
 
-    // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
-    //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
-    // FOV, aspect ratio (width/height), near distance, far distance
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+    // Delete all GLFW resources that where allocated before
+    glfwTerminate();
+    return 0;
+}
 
-    // Setting up the uniform variables to pass to the fragment shader
-    ourShader.setMat4("view", view);
-    ourShader.setMat4("projection", projection);
 
-    //glBindVertexArray(VAO);
-    // Pass each model 1 by 1 to render all 10
-    unsigned int arraySize = (sizeof(cubePositions) / sizeof(cubePositions[0]));
-    for (unsigned int i = 0; i < arraySize; i++) {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[i]);
-        
-        ourShader.setMat4("model", model);
-        // Gl draw arrays is used if an index buffer is not present
-        // gl draw elements is used if elements are used
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        
+// Callback for when a devide such as a gamepad is used
+void joystick_callback(int jid, int event)
+{
+    if (event == GLFW_CONNECTED)
+    {
+        std::cout << "\nJoystick/Gamepad [" << jid << "] was connected.";
     }
-
-    // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+    else if (event == GLFW_DISCONNECTED)
+    {
+        std::cout << "\nJoystick/Gamepad [" << jid << "] was disconnected.";
+    }
 }
-
-// Deallocate
-glDeleteVertexArrays(1, &VAO);
-glDeleteBuffers(1, &VBO);
-//glDeleteBuffers(1, &EBO);
-
-// Delete all GLFW resources that where allocated before
-glfwTerminate();
-return 0;
-}
-
 
 void processInput(GLFWwindow* window) {
 
+    // For gamepad just testing
+    if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
+    {
+        GLFWgamepadstate state;
+        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state))
+        {
+            if (state.buttons[GLFW_GAMEPAD_BUTTON_A])
+            {
+                std::cout << "A has been pressed. " << std::endl;
+                camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime);
+            }
+            else if (state.buttons[GLFW_GAMEPAD_BUTTON_B])
+            {
+                std::cout << "B has been pressed. " << std::endl;
+                camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
+            }
+            else if (state.buttons[GLFW_GAMEPAD_BUTTON_Y])
+            {
+                std::cout << "Y has been pressed. " << std::endl;
+                camera.processKeyboard(Camera_Movement::FORWARD, deltaTime);
+            }
+            else if (state.buttons[GLFW_GAMEPAD_BUTTON_X])
+            {
+                std::cout << "X has been pressed. " << std::endl;
+                camera.processKeyboard(Camera_Movement::LEFT, deltaTime);
+            }
+
+            // Now with axis
+            float x_axis_deadzone = 0.5;
+            float y_axis_deadzone = 0.5;
+            std::cout << "Left X: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] << 
+                        " Left Y: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] << 
+                        " || Right X: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] <<
+                        " Left Y: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] << std::endl;;
+
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] > x_axis_deadzone)
+            {
+                camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
+            }
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] < -x_axis_deadzone) {
+                camera.processKeyboard(Camera_Movement::LEFT, deltaTime);
+            }
+
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > y_axis_deadzone)
+            {
+                camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime);
+            }
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -y_axis_deadzone) {
+                camera.processKeyboard(Camera_Movement::FORWARD, deltaTime);
+            }
+
+            camera.ProcessMouseMovement(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
+        }
+    }
+
+    //////////// Keyboard
     // Quit button
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         std::cout << "\nGLFW_KEY_ESCAPE was pressed. Closing..." << std::endl;
