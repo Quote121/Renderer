@@ -12,7 +12,7 @@
 
 class Shader {
 public:
-	// Program ID
+	// Program ID (set when we create a shader instance)
 	unsigned int ID;
 
 	// Constructor reads and creates the shader
@@ -99,6 +99,8 @@ public:
 	}
 	// use/activate the shader
 	void use() {
+		// We must first activate the shader
+		// before setting things like uniforms
 		glUseProgram(ID);
 	}
 

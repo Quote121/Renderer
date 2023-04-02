@@ -1,11 +1,2 @@
-#include "renderer.h"
+#include "renderer.hpp"
 
-class Renderer{
-
-private:
-
-    
-public:
-
-
-};

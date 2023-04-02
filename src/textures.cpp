@@ -26,9 +26,10 @@
 #include <stdlib.h> // Clearing cmd for fps
 #include <iostream>
 #include <cmath> 
-#include "shader.h" // Custom shader header
+#include "shader.hpp" // Custom shader header
 #include "stb_image/stb_image.h" // Image imports
-#include "camera.h" // Camera class
+#include "camera.hpp" // Camera class
+#include "texture.hpp"
 
 // Prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -39,9 +40,6 @@ void getCamPosTest(Camera* camera);
 
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
-
-
-const char* ASSETFILEPATH = "../assets/";
 
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -109,8 +107,8 @@ if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 }
 glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-Shader ourShader("D:/git/Renderer/assets/shaders/shader1.vs", "D:/git/Renderer/assets/shaders/shader1.fs");
-//Shader ourShader("shader1.vs", "shader1.fs");
+Shader ourShader("assets/shaders/shader1.vs", "assets/shaders/shader1.fs");
+
 
 // Now we are mapping a cube, this will require 6 faces, each face will make up 6 vertexes as there are 2 triangles.
 // We are not using indexes and ebos here so there are 6 vertexes for each face instead of 4
@@ -158,6 +156,47 @@ float verticesForSquare[] = {
     -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
 };
 
+	// Verticies with normals and textures
+	float verticesWithNormal[]{
+	// positions			// normals				
+	-0.5f, -0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
+	 0.5f, -0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
+	 0.5f,  0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
+	 0.5f,  0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
+	-0.5f,  0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
+	-0.5f, -0.5f, -0.5f,	 0.0f,  0.0f, -1.0f,	
+	-0.5f, -0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
+	 0.5f, -0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
+	 0.5f,  0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
+	 0.5f,  0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
+	-0.5f,  0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
+	-0.5f, -0.5f,  0.5f,	 0.0f,  0.0f,  1.0f,	
+	-0.5f,  0.5f,  0.5f,	-1.0f,  0.0f,  0.0f,	
+	-0.5f,  0.5f, -0.5f,	-1.0f,  0.0f,  0.0f,	
+	-0.5f, -0.5f, -0.5f,	-1.0f,  0.0f,  0.0f,	
+	-0.5f, -0.5f, -0.5f,	-1.0f,  0.0f,  0.0f,	
+	-0.5f, -0.5f,  0.5f,	-1.0f,  0.0f,  0.0f,	
+	-0.5f,  0.5f,  0.5f,	-1.0f,  0.0f,  0.0f,	
+	 0.5f,  0.5f,  0.5f,	 1.0f,  0.0f,  0.0f,	
+	 0.5f,  0.5f, -0.5f,	 1.0f,  0.0f,  0.0f,	
+	 0.5f, -0.5f, -0.5f,	 1.0f,  0.0f,  0.0f,	
+	 0.5f, -0.5f, -0.5f,	 1.0f,  0.0f,  0.0f,	
+	 0.5f, -0.5f,  0.5f,	 1.0f,  0.0f,  0.0f,	
+	 0.5f,  0.5f,  0.5f,	 1.0f,  0.0f,  0.0f,	
+	-0.5f, -0.5f, -0.5f,	 0.0f, -1.0f,  0.0f,	
+	 0.5f, -0.5f, -0.5f,	 0.0f, -1.0f,  0.0f,	
+	 0.5f, -0.5f,  0.5f,	 0.0f, -1.0f,  0.0f,	
+	 0.5f, -0.5f,  0.5f,	 0.0f, -1.0f,  0.0f,	
+	-0.5f, -0.5f,  0.5f,	 0.0f, -1.0f,  0.0f,	
+	-0.5f, -0.5f, -0.5f,	 0.0f, -1.0f,  0.0f,	
+	-0.5f,  0.5f, -0.5f,	 0.0f,  1.0f,  0.0f,	
+	 0.5f,  0.5f, -0.5f,	 0.0f,  1.0f,  0.0f,	
+	 0.5f,  0.5f,  0.5f,	 0.0f,  1.0f,  0.0f,	
+	 0.5f,  0.5f,  0.5f,	 0.0f,  1.0f,  0.0f,	
+	-0.5f,  0.5f,  0.5f,	 0.0f,  1.0f,  0.0f,	
+	-0.5f,  0.5f, -0.5f,	 0.0f,  1.0f,  0.0f,	
+	};
+
 glm::vec3 cubePositions[] = {
 
     glm::vec3(2.0f,   5.0f, -15.0f),
@@ -186,7 +225,7 @@ glGenBuffers(1, &VBO);
 // bind the vertex array object then the vertex buffer then config vertex attributes
 glBindVertexArray(VAO);
 
-glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the VBO object to the vertex buffer
+glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the VBO object to the vertex buffer array
 glBufferData(GL_ARRAY_BUFFER, sizeof(verticesForSquare), verticesForSquare, GL_STATIC_DRAW); // Passin IN to the shader the verticies aPos is vertices
 
 //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -202,87 +241,24 @@ glEnableVertexAttribArray(1);
 
 
 //// We now need to tell opengl how to sample the textures
-
 unsigned int texture1, texture2;
-// no of textures, gens id
-glGenTextures(1, &texture1);
-glBindTexture(GL_TEXTURE_2D, texture1);
-// set the texture wrapping parameters
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-// Mipmaps
-// texture images of progressively smaller sizes (twice as small as other)
-// glGenerateMipmaps
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-// Loading a texture
-int width, height, nrChannels;
-stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-unsigned char* data = stbi_load("D:/git/Renderer/assets/textures/missing.jpg", &width, &height, &nrChannels, 0); // unsigned chars (bytes)
+Texture::loadTexture("assets/textures/missing.jpg", texture1, GL_RGB);
+Texture::loadTexture("assets/textures/trollface.png", texture2, GL_RGBA);
 
-if (data) {
-    // Now we generate the texture with glTexImage2D // page 60 for extra details
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); // 2nd arg specifies the mipmap
-    glGenerateMipmap(GL_TEXTURE_2D);
-    
-    std::cout << "Texture loaded WxH: " << width << " x " << height << " pixels" << std::endl;
-
-}
-else {
-    std::cout << "Failed to load texture." << std::endl;
-}
-stbi_image_free(data); // free image memory
-
-
-
-
-// no of textures, gens id
-glGenTextures(1, &texture2);
-glBindTexture(GL_TEXTURE_2D, texture2);
-
-
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-data = stbi_load("D:/git/Renderer/assets/textures/trollface.png", &width, &height, &nrChannels, 0);
-
-if (data) {
-    // Now we generate the texture with glTexImage2D // page 60 for extra details
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data); // 2nd arg specifies the mipmap
-    glGenerateMipmap(GL_TEXTURE_2D);
-    std::cout << "Texture loaded WxH: " << width << " x " << height << " pixels" << std::endl;
-
-}
-else {
-    std::cout << "Failed to load texture." << std::endl;
-}
-stbi_image_free(data); // free image memory
-
-
-
-ourShader.use(); // activate before uniforms
-// set manually
-//glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-// or set via texture class
-ourShader.setInt("texture1", 0);
+ourShader.use(); // activate before uniforms (activate the fragment and vertex shader then we can alter uniforms)
+// this is setting unifroms
+ourShader.setInt("texture1", 0); 
 ourShader.setInt("texture2", 1);
 
 // 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
-
-
-
-
 
 // Z buffer for displaying correct trianges
 glEnable(GL_DEPTH_TEST);
 
 // Removes the backfaces of faces
 // however the cubes in the current state are not correct, normals wrong way
-glEnable(GL_CULL_FACE);
+// glEnable(GL_CULL_FACE);
 
 
 // Get matrix of view
@@ -295,12 +271,9 @@ direction.z = sin(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
 int fpsSampCount = 0;
 float fpsSum = 0;
 
-
 // Render loop to keep rendering until the program is closed
 // If GLFW has been instructed to close then run this function
 while (!glfwWindowShouldClose(window)){
-
-    //getCamPosTest(&camera);
 
     float currentFrame = (float)glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -314,14 +287,11 @@ while (!glfwWindowShouldClose(window)){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // bind textures on corresponding texture units
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
+    Texture::activateTexture(texture1, 0);
+    Texture::activateTexture(texture2, 1);
+    
     // Activate shader
     ourShader.use();
-
 
     // Print fps and coords
     const int sampleSize = 100;
@@ -354,7 +324,10 @@ while (!glfwWindowShouldClose(window)){
         model = glm::translate(model, cubePositions[i]);
         
         ourShader.setMat4("model", model);
+        // Gl draw arrays is used if an index buffer is not present
+        // gl draw elements is used if elements are used
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
     }
 
     // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
