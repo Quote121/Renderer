@@ -1,6 +1,6 @@
 #include "texture.hpp"
 
-void Texture::loadTexture(const char *path, unsigned int &textureID, GLenum format)
+void TextureLoader::loadTexture(const char *path, unsigned int &textureID, GLenum format)
 {
     // no of textures, gens id
     glGenTextures(1, &textureID);
@@ -34,7 +34,7 @@ void Texture::loadTexture(const char *path, unsigned int &textureID, GLenum form
     stbi_image_free(data);
 }
 
-void Texture::activateTexture(unsigned int texture, unsigned int id)
+void TextureLoader::activateTexture(unsigned int texture, unsigned int id)
 {
     // GL_TEXTURE0 + id // acts as a offset from GL_TEXTURE0
     // read glActiveTexture to make more sence
