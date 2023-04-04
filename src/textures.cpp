@@ -126,11 +126,13 @@ int main() {
 
     // Removes the backfaces of faces
     // however the cubes in the current state are not correct, normals wrong way
-    // glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
 
 
-    Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
+    // Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
+    Model cube("D:/git/Renderer/assets/models/cube.obj");
+
     // Model backpack = new Model();
 
     int fpsSampCount = 0;
@@ -177,8 +179,12 @@ int main() {
         backpackShader.setMat4("view", view);
         backpackShader.setMat4("projection", projection);
         backpackShader.setMat4("model", model);
+        
+        cube.Draw(backpackShader);
 
-        backpack.Draw(backpackShader);
+        // backpack.Draw(backpackShader);
+
+
 
         // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
         glfwSwapBuffers(window);
