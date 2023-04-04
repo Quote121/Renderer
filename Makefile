@@ -16,14 +16,7 @@ CXXFLAGS = -std=c++20 -Wall -Wextra
 
 # For 64-bit version
 # make MODE=64
-ifeq ($(MODE), 64)
-	GLFWVER = GLFW_64
-	CC = gcc
-	CXX = g++
-	CFLAGS := $(filter-out -m32, $(CFLAGS))
-	CXXFLAGS := $(filter-out -m32, $(CXXFLAGS))
-## Building for 32 bit
-else
+ifeq ($(MODE), 32)
 	GLFWVER = GLFW_32
 	CC = gcc
 	ifeq ($(OS),Windows_NT)
@@ -31,6 +24,13 @@ else
 	else
 		CXX = g++
 	endif
+## Building for 32 bit
+else
+	GLFWVER = GLFW_64
+	CC = gcc
+	CXX = g++
+	CFLAGS := $(filter-out -m32, $(CFLAGS))
+	CXXFLAGS := $(filter-out -m32, $(CXXFLAGS))
 endif
 
 # For debugging
@@ -57,12 +57,15 @@ CPP_OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(CPP_SOURCES))
 
 # Static library for glfw
 LIBFLAGS = -lopengl32
-LIBFLAGS += $(CURDIR)/libs/$(GLFWVER)/libglfw3.a
+LIBFLAGS += $(CURDIR)/libs/$(GLFWVER)/libglfw3.a ## Used full path as linker flag -lglfw3 not recognied
 LIBFLAGS += -lgdi32
+LIBFLAGS += $(CURDIR)/libs/assimp/libassimp.a ## Used full path as linker flag -lassimp not recognied
+LIBFLAGS += $(CURDIR)/libs/assimp/libzlibstatic.a
 
 # Library DIR and Include DIR
 INCLUDEPATHS = -I$(CURDIR)/include
 LIBRARYPATHS = -L$(CURDIR)/libs/$(GLFWVER)
+LIBRARYPATHS = -L$(CURDIR)/libs/assimp
 
 $(info =============================)
 $(info CFLAGS : $(CFLAGS))

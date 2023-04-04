@@ -26,355 +26,260 @@
 #include <stdlib.h> // Clearing cmd for fps
 #include <iostream>
 #include <cmath> 
-#include "shader.h" // Custom shader header
+#include "shader.hpp" // Custom shader header
 #include "stb_image/stb_image.h" // Image imports
-#include "camera.h" // Camera class
+#include "camera.hpp" // Camera class
+#include "texture.hpp"
+
+#include "model.hpp"
 
 // Prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void getCamPosTest(Camera* camera);
 
+void joystick_callback(int jid, int event);
+
+// Window constatns
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
+const char* windowTitle = "OpenGL learning";
 
-
-const char* ASSETFILEPATH = "../assets/";
-
-
+// Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-//glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-//glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-
-
-
 float cameraYaw = -90.0f;
 float cameraPitch = 0.0f;
 float cameraFov = 45.0f;
 
-bool firstMouse = true;
 
 // Mouse position data (center of the screen by init
 float lastX = WINDOW_WIDTH / 2.0f, lastY = WINDOW_HEIGHT / 2.0f;
+bool firstMouse = true;
 
+// Frame vars
+double deltaTime = 0.0; // Time between current frame and last frame
+double lastFrame = 0.0; // Time of last frame
 
-float deltaTime = 0.0f; // Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
-
-const char* windowTitle = "OpenGL learning";
 
 int main() {
-// Initalise GLFW for the window
-glfwInit();
-glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Spec what the window should have
-glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6); // Setting to version 4.6
-glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // MACOSX
-#endif
+    // Initalise GLFW for the window
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Spec what the window should have
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6); // Setting to version 4.6
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    #ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // MACOSX
+    #endif
 
-// PAGE 20
+    // PAGE 20
 
-// Create the window assign it to var window
-GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, windowTitle, NULL, NULL);
-// ViewPort tell openGL the size of the rendering window
-// First 2 params are where the window will be created
-
-
-if (window == NULL){
-    // Error
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return -1;
-}
-glfwMakeContextCurrent(window);
-// Telling open gl that we wanth the resize callback funtion to be called on window when its resized
-glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-// Hide cursor and capture its input
-glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-glfwSetCursorPosCallback(window, mouse_callback);
-glfwSetScrollCallback(window, scroll_callback);
-
-// Initalise GLAD
-if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-{
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    glfwTerminate();
-    return -1;
-}
-glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-Shader ourShader("D:/git/Renderer/assets/shaders/shader1.vs", "D:/git/Renderer/assets/shaders/shader1.fs");
-//Shader ourShader("shader1.vs", "shader1.fs");
-
-// Now we are mapping a cube, this will require 6 faces, each face will make up 6 vertexes as there are 2 triangles.
-// We are not using indexes and ebos here so there are 6 vertexes for each face instead of 4
-// in total that is 6faces * 2Trianges * 3Vertexes therefore 36 vertices.
+    // Create the window assign it to var window
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, windowTitle, NULL, NULL);
+    // ViewPort tell openGL the size of the rendering window
+    // First 2 params are where the window will be created
 
 
+    if (window == NULL){
+        // Error
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    // Telling open gl that we wanth the resize callback funtion to be called on window when its resized
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-// Texture coords (4th and 5th) are relative to the triangle/square
-float verticesForSquare[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
-};
+    // Hide cursor and capture its input
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
-glm::vec3 cubePositions[] = {
+    //////////////////
+    //
+    // Gamepad
+    //
+    //////////////////
+    int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+    std::cout << "Present" << present << std::endl;
+    glfwSetJoystickCallback(joystick_callback);
 
-    glm::vec3(2.0f,   5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f,  -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3(1.3f,  -2.0f, -2.5f),
-    glm::vec3(1.5f,   2.0f, -2.5f),
-    glm::vec3(1.5f,   0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-};
-
-
-std::cout << "Float size: " << sizeof(float) << " bytes" << std::endl;
-
-// Page 29
-// VAO are used to store the attribute data of the vbos
-// For several triangles more than 1 vao and vbo can be created
-unsigned int VBO, VAO;
-
-glGenVertexArrays(1, &VAO);
-glGenBuffers(1, &VBO);
-//glGenBuffers(1, &EBO);
-
-// bind the vertex array object then the vertex buffer then config vertex attributes
-glBindVertexArray(VAO);
-
-glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the VBO object to the vertex buffer
-glBufferData(GL_ARRAY_BUFFER, sizeof(verticesForSquare), verticesForSquare, GL_STATIC_DRAW); // Passin IN to the shader the verticies aPos is vertices
-
-//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-
-
-glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-glEnableVertexAttribArray(1);
-
-
-
-//// We now need to tell opengl how to sample the textures
-
-unsigned int texture1, texture2;
-// no of textures, gens id
-glGenTextures(1, &texture1);
-glBindTexture(GL_TEXTURE_2D, texture1);
-// set the texture wrapping parameters
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-// Mipmaps
-// texture images of progressively smaller sizes (twice as small as other)
-// glGenerateMipmaps
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-// Loading a texture
-int width, height, nrChannels;
-stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-unsigned char* data = stbi_load("D:/git/Renderer/assets/textures/missing.jpg", &width, &height, &nrChannels, 0); // unsigned chars (bytes)
-
-if (data) {
-    // Now we generate the texture with glTexImage2D // page 60 for extra details
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); // 2nd arg specifies the mipmap
-    glGenerateMipmap(GL_TEXTURE_2D);
+    // glfwSwapInterval(0); // This will disable vsync and remove frame rate cap
     
-    std::cout << "Texture loaded WxH: " << width << " x " << height << " pixels" << std::endl;
 
-}
-else {
-    std::cout << "Failed to load texture." << std::endl;
-}
-stbi_image_free(data); // free image memory
-
-
-
-
-// no of textures, gens id
-glGenTextures(1, &texture2);
-glBindTexture(GL_TEXTURE_2D, texture2);
-
-
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-data = stbi_load("D:/git/Renderer/assets/textures/trollface.png", &width, &height, &nrChannels, 0);
-
-if (data) {
-    // Now we generate the texture with glTexImage2D // page 60 for extra details
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data); // 2nd arg specifies the mipmap
-    glGenerateMipmap(GL_TEXTURE_2D);
-    std::cout << "Texture loaded WxH: " << width << " x " << height << " pixels" << std::endl;
-
-}
-else {
-    std::cout << "Failed to load texture." << std::endl;
-}
-stbi_image_free(data); // free image memory
-
-
-
-ourShader.use(); // activate before uniforms
-// set manually
-//glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-// or set via texture class
-ourShader.setInt("texture1", 0);
-ourShader.setInt("texture2", 1);
-
-// 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
-
-
-
-
-
-// Z buffer for displaying correct trianges
-glEnable(GL_DEPTH_TEST);
-
-// Removes the backfaces of faces
-// however the cubes in the current state are not correct, normals wrong way
-glEnable(GL_CULL_FACE);
-
-
-// Get matrix of view
-glm::vec3 direction;
-direction.x = cos(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
-direction.y = sin(glm::radians(cameraPitch));
-direction.z = sin(glm::radians(cameraYaw)) * sin(glm::radians(cameraPitch));
-
-
-int fpsSampCount = 0;
-float fpsSum = 0;
-
-
-// Render loop to keep rendering until the program is closed
-// If GLFW has been instructed to close then run this function
-while (!glfwWindowShouldClose(window)){
-
-    //getCamPosTest(&camera);
-
-    float currentFrame = (float)glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-
-    // Call the input processer each loop to check if the esc key is pressed
-    processInput(window);
-
-    // Clearing colour buffer
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // bind textures on corresponding texture units
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
-    // Activate shader
-    ourShader.use();
-
-
-    // Print fps and coords
-    const int sampleSize = 100;
-    fpsSum += (1 / deltaTime);
-    fpsSampCount += 1;
-    if (fpsSampCount == sampleSize) {
-        std::cout << ceil((int)(fpsSum / sampleSize * 10)) / 10 << " fps " <<
-            "LastX|LastY: " << camera.Pitch << " | " << camera.Yaw <<
-            "[x,y,z] : " << camera.GetPositionCoords() << "                   "
-            << '\r';
-        fpsSum = 0; fpsSampCount = 0;
+    // Initalise GLAD
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        glfwTerminate();
+        return -1;
     }
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    Shader ourShader("assets/shaders/texture/shader1.vs", "assets/shaders/texture/shader1.fs");
+    Shader backpackShader("assets/shaders/backpack/vertexShader.vs", "assets/shaders/backpack/fragmentShader.fs");
+
+    // 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
+
+    // Z buffer for displaying correct trianges
+    glEnable(GL_DEPTH_TEST);
+
+    // Removes the backfaces of faces
+    // however the cubes in the current state are not correct, normals wrong way
+    glEnable(GL_CULL_FACE);
 
 
-    // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
-    //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
-    // FOV, aspect ratio (width/height), near distance, far distance
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
 
-    // Setting up the uniform variables to pass to the fragment shader
-    ourShader.setMat4("view", view);
-    ourShader.setMat4("projection", projection);
+    // Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
+    Model cube("D:/git/Renderer/assets/models/cube.obj");
 
-    //glBindVertexArray(VAO);
-    // Pass each model 1 by 1 to render all 10
-    unsigned int arraySize = (sizeof(cubePositions) / sizeof(cubePositions[0]));
-    for (unsigned int i = 0; i < arraySize; i++) {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[i]);
+    // Model backpack = new Model();
+
+    int fpsSampCount = 0;
+    float fpsSum = 0;
+
+    // Render loop to keep rendering until the program is closed
+    // If GLFW has been instructed to close then run this function
+    while (!glfwWindowShouldClose(window)){
+
+        double currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        // Call the input processer each loop to check if the esc key is pressed
+        processInput(window);
         
-        ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+        // Clearing colour buffer
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+        // Print fps and coords
+        const int sampleSize = 100;
+        fpsSum += (1 / deltaTime);
+        fpsSampCount += 1;
+        if (fpsSampCount == sampleSize) {
+            std::cout << ceil((int)(fpsSum / sampleSize * 10)) / 10 << " fps " <<
+                "LastX|LastY: " << camera.Pitch << " | " << camera.Yaw <<
+                "[x,y,z] : " << camera.GetPositionCoords() << "                   "
+                << '\r';
+            fpsSum = 0; fpsSampCount = 0;
+        }
+        
+
+        // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
+        //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
+        // FOV, aspect ratio (width/height), near distance, far distance
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+        backpackShader.use();
+        backpackShader.setMat4("view", view);
+        backpackShader.setMat4("projection", projection);
+        backpackShader.setMat4("model", model);
+        
+        cube.Draw(backpackShader);
+
+        // backpack.Draw(backpackShader);
+
+
+
+        // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
-    // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-}
-
-// Deallocate
-glDeleteVertexArrays(1, &VAO);
-glDeleteBuffers(1, &VBO);
-//glDeleteBuffers(1, &EBO);
-
-// Delete all GLFW resources that where allocated before
-glfwTerminate();
-return 0;
+    // Delete all GLFW resources that where allocated before
+    glfwTerminate();
+    return 0;
 }
 
 
+// Callback for when a devide such as a gamepad is used
+void joystick_callback(int jid, int event)
+{
+    if (event == GLFW_CONNECTED)
+    {
+        std::cout << "\nJoystick/Gamepad [" << jid << "] was connected.";
+    }
+    else if (event == GLFW_DISCONNECTED)
+    {
+        std::cout << "\nJoystick/Gamepad [" << jid << "] was disconnected.";
+    }
+}
+
+
+// This should be abstracted
 void processInput(GLFWwindow* window) {
 
+    // For gamepad just testing
+    if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
+    {
+        GLFWgamepadstate state;
+        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state))
+        {
+            // Quit
+            if (state.buttons[GLFW_GAMEPAD_BUTTON_BACK])
+            {
+                std::cout << "\nGLFW_GAMEPAD_BUTTON_BACK was pressed. Closing..." << std::endl;
+                glfwSetWindowShouldClose(window, true);
+            }
+
+            // Up and down
+            if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER])
+                camera.processKeyboard(Camera_Movement::DOWN, deltaTime);
+
+            if (state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER])
+                camera.processKeyboard(Camera_Movement::UP, deltaTime);
+
+            
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER])
+
+            camera.ProcessMouseScroll((state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]+1) * -1);
+            camera.ProcessMouseScroll(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]+1);
+
+            // Now with axis
+            float x_axis_deadzone = 0.3;
+            float y_axis_deadzone = 0.3;
+            std::cout << "Left X: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] << 
+                        " Left Y: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] << 
+                        " || Right X: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] <<
+                        " Left Y: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] << 
+                        " || LEFT TRIGGER: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] <<
+                        " RIGHT TRIGGER: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] <<
+                        std::endl;;
+
+            // Translation movement left and right
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] > x_axis_deadzone)
+                camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] < -x_axis_deadzone)
+                camera.processKeyboard(Camera_Movement::LEFT, deltaTime);
+
+            // Translation movement back and forwards
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > y_axis_deadzone)
+                camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime);
+            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -y_axis_deadzone)
+                camera.processKeyboard(Camera_Movement::FORWARD, deltaTime);
+
+            // SPRINT
+            if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB])
+            {
+                if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -y_axis_deadzone)
+                    camera.processKeyboard(Camera_Movement::FORWARD, deltaTime, 2.0f);
+
+                if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > y_axis_deadzone)
+                    camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime, 2.0f);
+            }
+            
+            // Look
+            if (glm::abs(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]) > x_axis_deadzone || glm::abs(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]) > y_axis_deadzone)
+                camera.ProcessMouseMovement(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
+        }
+    }
+
+    //////////// Keyboard
     // Quit button
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         std::cout << "\nGLFW_KEY_ESCAPE was pressed. Closing..." << std::endl;
@@ -440,10 +345,6 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
-}
-
-void getCamPosTest(Camera* camera) {
-    std::cout << "This is x of camera" << camera->Position.x << std::endl;
 }
 
 // Callback funtion when the function is resized
