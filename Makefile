@@ -64,8 +64,10 @@ LIBFLAGS += $(CURDIR)/libs/assimp/libzlibstatic.a
 
 # Library DIR and Include DIR
 INCLUDEPATHS = -I$(CURDIR)/include
+INCLUDEPATHS += -I$(CURDIR)/include/imgui
 LIBRARYPATHS = -L$(CURDIR)/libs/$(GLFWVER)
 LIBRARYPATHS = -L$(CURDIR)/libs/assimp
+
 
 $(info =============================)
 $(info CFLAGS : $(CFLAGS))

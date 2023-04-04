@@ -16,21 +16,30 @@
 ///////////////////////////////
 
 // Glad has to be before glfw as it contains certain headers that will clash otherwise
+// Glad/GLFW
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+// GLM
 #include <glm/glm.hpp> // opengl mathematics
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// STD
 #include <stdlib.h> // Clearing cmd for fps
 #include <iostream>
 #include <cmath> 
+
+// IMGUI
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
+// Other
 #include "shader.hpp" // Custom shader header
 #include "stb_image/stb_image.h" // Image imports
 #include "camera.hpp" // Camera class
 #include "texture.hpp"
-
 #include "model.hpp"
 
 // Prototypes
@@ -129,14 +138,28 @@ int main() {
     glEnable(GL_CULL_FACE);
 
 
-
+    // note in model loading if the model does not have things like
+    // textures it will use the ones before, this needs to be fixed (default texture saying there is no texture defined)
+    
     // Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
     Model cube("D:/git/Renderer/assets/models/cube.obj");
 
-    // Model backpack = new Model();
-
     int fpsSampCount = 0;
     float fpsSum = 0;
+
+
+    // IMGUI test
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
+
+
+
+
+
 
     // Render loop to keep rendering until the program is closed
     // If GLFW has been instructed to close then run this function
@@ -154,6 +177,11 @@ int main() {
         // Clearing colour buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
 
         // Print fps and coords
@@ -184,12 +212,24 @@ int main() {
 
         // backpack.Draw(backpackShader);
 
+        ImGui::Begin("ImGui window");
+        ImGui::Text("Test text");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
         // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    // Context destruction
 
     // Delete all GLFW resources that where allocated before
     glfwTerminate();
@@ -297,6 +337,12 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
 
+    // Used for interacting with ImGui window
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     // Sprint logic
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -351,82 +397,3 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
-
-// Vectors
-//
-// in GLSL is a 1,2,3 or 4 component container for any of the basic types just mentioned they can take the following from (n represents the num of coponents)
-// vecn: the default vector of n floats
-// bvecn: vector of n bools
-// ivecn: vector of n ints
-// uvecn: vector of n unsigned ints
-// dvecn: vector of n double components
-//
-// Vector components can be accessed through .x .y .z .w
-// rgba for colours and stpq for texture coords
-//
-// 
-//vec2 someVec;
-//vec4 differentVec = someVec.xyxx;
-//vec3 anotherVec = differentVec.zyw;
-//vec4 otherVec = someVec.xxxx + anotherVec.yxzy;
-//
-//
-//// Telling openGL how to link the vertexes to one another
-//
-//// Location = 0 of the vertex shader. Vec3 so 3 vals
-//// 4th attribute is if the data should be normalised
-//// 5th attribute is the stride that tells us the space between consecutive vertex attributes
-////    each vertex is 3 floats away as the vertex consits of a vec3 of floats
-//// Last param is of type void* and requires that cast. Its the offset where the position data begins in the buffer.
-//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-//glEnableVertexAttribArray(0);
-//
-//
-//	//• GL_STREAM_DRAW : the data is set only onceand used by the GPU at most a few times.
-//• GL_STATIC_DRAW : the data is set only onceand used many times. The triangle is not moving but will be called alot
-//• GL_DYNAMIC_DRAW : the data is changed a lotand used many times
-//
-//
-// Determinant of a matrix is the scale it has had on its area or volume if 3d
-// Can be negative if invertes it through a rotation
-//
-// Det( a b
-//      c d ) = ad - bc
-//
-
-
-
-
-// Mapping the texture onto the triangle
-// 0,0 (bottom left) 1,1 (Top right)
-// Texture coords
-// Rectangle with texture
-//float vertices[] = {
-//	// Pos             // Colors          // texture coords
-//	 0.5f,  0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f, // top right
-//	 0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f,// bottom right
-//	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,// bottom left
-//	-0.5f,  0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f, 1.0f // top left
-//};
-
-// Here we have 4 coords for the 4 sides of our square. However,
-// we have 6 verticies to map as all shapes are made up from triangles
-// To solve this we use EBOs for redudency and can pass in index coorinates
-// to map several triangles from less coordinates.
-//float vertices[] = {
-//	// Pos                  // texture coords
-//	 0.5f,  0.5f, 0.0f,		1.0f, 1.0f, // top right
-//	 0.5f, -0.5f, 0.0f,		1.0f, 0.0f,// bottom right
-//	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f,// bottom left
-//	-0.5f,  0.5f, 0.0f,		0.0f, 1.0f // top left
-//};
-
-
-
-// Used for data redudency (EBOS) element buffer obj, similar to VBO 
-//unsigned int indices[] = {
-//	0, 1, 3, // first triangle
-//	1, 2, 3  // second triangle
-//};
-
-
