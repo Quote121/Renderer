@@ -1,14 +1,12 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <glad/glad.h>
+#include <GLFW/glfw3.h> // GL_Boolean etc.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <string>
 #include <sstream>
-
-//#include <vector>
 
 // Enum class declared instead of enum as other enum types can be seen as equivilent
 enum class Camera_Movement {
@@ -28,6 +26,15 @@ const float SPEED = 2.5f;
 const float SENSITIVITY = 0.5f;
 const float ZOOM = 45.0f;
 
+/*
+
+Camera is a singleton class
+this means that we cannot create another instance of it
+
+*/
+
+
+
 class Camera {
 public:
 	// Camera attributes
@@ -44,36 +51,15 @@ public:
 	float MouseSensitivity;
 	float Zoom;
 
+	// Singleton constructors
+	static Camera* getInstance(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
+	static Camera* getInstance(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
+
 	std::string GetPositionCoords(void) {
 		std::stringstream s;
 		s << "[" << Position.x << "," << Position.y << "," << Position.z << "]";
 		return s.str();
 	}
-
-	// Constructor init list is used as it can define them based on the constructor used and putting the 
-	// assigmnets in the constructor body is twice the work
-	// Constructor with vectors
-	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
-	{
-		Position = position;
-		WorldUp = up;
-		Yaw = yaw;
-		Pitch = pitch;
-		updateCameraVectors();
-	}
-
-	// constructor with scalar values
-	Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
-	{
-		Position = glm::vec3(posX, posY, posZ);
-		WorldUp = glm::vec3(upX, upY, upZ);
-		Yaw = yaw;
-		Pitch = pitch;
-		updateCameraVectors();
-	}
-
-	~Camera() { }
-
 
 	// returns the view matrix calculated using Euler Angles and the LookAt Matrix
 	glm::mat4 GetViewMatrix()
@@ -135,20 +121,40 @@ public:
 			Zoom = 45.0f;
 	}
 
-
 private:
+	// Private the default constructor
+	Camera() = default;
+	// Constructor with vectors
+	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+	{
+		Position = position;
+		WorldUp = up;
+		Yaw = yaw;
+		Pitch = pitch;
+		updateCameraVectors();
+	}
+	// constructor with scalar values
+	Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+	{
+		Position = glm::vec3(posX, posY, posZ);
+		WorldUp = glm::vec3(upX, upY, upZ);
+		Yaw = yaw;
+		Pitch = pitch;
+		updateCameraVectors();
+	}
+
+	~Camera() { }
+
+	// Singleton
+	static Camera *pinstance_;
+
+
+
+	Camera(const Camera&) = delete;
+	Camera& operator=(const Camera&) = delete;
 
 	// calculates the front vector from the Camera's (updated) Euler Angles
-	void updateCameraVectors() {
-		// calculate the new front vector
-		Front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-		Front.y = sin(glm::radians(Pitch));
-		Front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-		Front = glm::normalize(Front);
-		// also re-calculate the Right and Up vector
-		Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-		Up = glm::normalize(glm::cross(Right, Front));
-	}
+	void updateCameraVectors();
 };
 
 #endif // CAMERA_H

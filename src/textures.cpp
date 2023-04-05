@@ -42,9 +42,10 @@
 #include "texture.hpp"
 #include "model.hpp"
 
+#include "inputHandler.hpp"
+
 // Prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -55,12 +56,12 @@ const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
 const char* windowTitle = "OpenGL learning";
 
-// Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float cameraYaw = -90.0f;
-float cameraPitch = 0.0f;
-float cameraFov = 45.0f;
-
+// // Camera
+// Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+// float cameraYaw = -90.0f;
+// float cameraPitch = 0.0f;
+// float cameraFov = 45.0f;
+Camera* camera = Camera::getInstance(glm::vec3{0.0f, 0.0f, 3.0f});
 
 // Mouse position data (center of the screen by init
 float lastX = WINDOW_WIDTH / 2.0f, lastY = WINDOW_HEIGHT / 2.0f;
@@ -69,6 +70,10 @@ bool firstMouse = true;
 // Frame vars
 double deltaTime = 0.0; // Time between current frame and last frame
 double lastFrame = 0.0; // Time of last frame
+
+// Deadzones for controller joysticks
+float InputHandler::x_axis_deadzone = 0.3;
+float InputHandler::y_axis_deadzone = 0.3;
 
 
 int main() {
@@ -88,6 +93,9 @@ int main() {
     // ViewPort tell openGL the size of the rendering window
     // First 2 params are where the window will be created
 
+    // Create before callbacks as they use it
+    // Get the only instance of camera
+    
 
     if (window == NULL){
         // Error
@@ -100,7 +108,9 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Hide cursor and capture its input
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -152,11 +162,11 @@ int main() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
-
-
 
 
 
@@ -170,10 +180,8 @@ int main() {
         lastFrame = currentFrame;
 
         // Call the input processer each loop to check if the esc key is pressed
-        processInput(window);
+        InputHandler::process(window, deltaTime, mouse_callback);
         
-
-
         // Clearing colour buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -190,8 +198,8 @@ int main() {
         fpsSampCount += 1;
         if (fpsSampCount == sampleSize) {
             std::cout << ceil((int)(fpsSum / sampleSize * 10)) / 10 << " fps " <<
-                "LastX|LastY: " << camera.Pitch << " | " << camera.Yaw <<
-                "[x,y,z] : " << camera.GetPositionCoords() << "                   "
+                "LastX|LastY: " << camera->Pitch << " | " << camera->Yaw <<
+                "[x,y,z] : " << camera->GetPositionCoords() << "                   "
                 << '\r';
             fpsSum = 0; fpsSampCount = 0;
         }
@@ -200,8 +208,8 @@ int main() {
         // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
         //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
         // FOV, aspect ratio (width/height), near distance, far distance
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera->GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
         backpackShader.use();
         backpackShader.setMat4("view", view);
@@ -211,17 +219,19 @@ int main() {
         cube.Draw(backpackShader);
 
         // backpack.Draw(backpackShader);
-
+        {
         ImGui::Begin("ImGui window");
         ImGui::Text("Test text");
         ImGui::End();
-
+        }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
         // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
         glfwSwapBuffers(window);
+
+
         glfwPollEvents();
     }
 
@@ -232,165 +242,24 @@ int main() {
     // Context destruction
 
     // Delete all GLFW resources that where allocated before
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
 
 
 // Callback for when a devide such as a gamepad is used
-void joystick_callback(int jid, int event)
-{
-    if (event == GLFW_CONNECTED)
-    {
-        std::cout << "\nJoystick/Gamepad [" << jid << "] was connected.";
-    }
-    else if (event == GLFW_DISCONNECTED)
-    {
-        std::cout << "\nJoystick/Gamepad [" << jid << "] was disconnected.";
-    }
-}
-
-
-// This should be abstracted
-void processInput(GLFWwindow* window) {
-
-    // For gamepad just testing
-    if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
-    {
-        GLFWgamepadstate state;
-        if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state))
-        {
-            // Quit
-            if (state.buttons[GLFW_GAMEPAD_BUTTON_BACK])
-            {
-                std::cout << "\nGLFW_GAMEPAD_BUTTON_BACK was pressed. Closing..." << std::endl;
-                glfwSetWindowShouldClose(window, true);
-            }
-
-            // Up and down
-            if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER])
-                camera.processKeyboard(Camera_Movement::DOWN, deltaTime);
-
-            if (state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER])
-                camera.processKeyboard(Camera_Movement::UP, deltaTime);
-
-            
-            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER])
-
-            camera.ProcessMouseScroll((state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]+1) * -1);
-            camera.ProcessMouseScroll(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]+1);
-
-            // Now with axis
-            float x_axis_deadzone = 0.3;
-            float y_axis_deadzone = 0.3;
-            std::cout << "Left X: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] << 
-                        " Left Y: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] << 
-                        " || Right X: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] <<
-                        " Left Y: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] << 
-                        " || LEFT TRIGGER: " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] <<
-                        " RIGHT TRIGGER: " << state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] <<
-                        std::endl;;
-
-            // Translation movement left and right
-            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] > x_axis_deadzone)
-                camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
-            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] < -x_axis_deadzone)
-                camera.processKeyboard(Camera_Movement::LEFT, deltaTime);
-
-            // Translation movement back and forwards
-            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > y_axis_deadzone)
-                camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime);
-            if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -y_axis_deadzone)
-                camera.processKeyboard(Camera_Movement::FORWARD, deltaTime);
-
-            // SPRINT
-            if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB])
-            {
-                if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -y_axis_deadzone)
-                    camera.processKeyboard(Camera_Movement::FORWARD, deltaTime, 2.0f);
-
-                if (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > y_axis_deadzone)
-                    camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime, 2.0f);
-            }
-            
-            // Look
-            if (glm::abs(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]) > x_axis_deadzone || glm::abs(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]) > y_axis_deadzone)
-                camera.ProcessMouseMovement(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X], -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
-        }
-    }
-
-    //////////// Keyboard
-    // Quit button
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        std::cout << "\nGLFW_KEY_ESCAPE was pressed. Closing..." << std::endl;
-        glfwSetWindowShouldClose(window, true);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.processKeyboard(Camera_Movement::FORWARD, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.processKeyboard(Camera_Movement::LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
-
-    // Used for interacting with ImGui window
-    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // Sprint logic
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            camera.processKeyboard(Camera_Movement::FORWARD, deltaTime, 2.0f);
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime, 2.0f);
-    }
-
-    // Space and ctrl for up and down
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        camera.processKeyboard(Camera_Movement::UP, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        camera.processKeyboard(Camera_Movement::DOWN, deltaTime);
-
+void joystick_callback(int jid, int event){
+    InputHandler::joystick_callback_process(jid, event);
 }
 
 // Process mouse inputs // xpos and ypos origignally doubles 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-    // Cast xpos to float
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    // First time tabbing in
-    // This is only relevent when the program first runs and captures the mouse input from anypart of the screen
-    // then recentering it will cuase a large difference and large movement
-    if (firstMouse) // initially set to true
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed y ranges bottom to top
-    lastX = xpos;
-    lastY = ypos;
-
-    const float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    InputHandler::mouse_callback_process(window, xposIn, yposIn, lastX, lastY, firstMouse);
 }
 
-
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    InputHandler::scroll_callback_process(window, xoffset, yoffset);
 }
 
 // Callback funtion when the function is resized
