@@ -48,6 +48,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 void joystick_callback(int jid, int event);
 
@@ -108,10 +109,11 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Hide cursor and capture its input
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     //////////////////
@@ -164,11 +166,11 @@ int main() {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    
+
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
-
-
 
 
     // Render loop to keep rendering until the program is closed
@@ -178,6 +180,8 @@ int main() {
         double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        glfwPollEvents();
 
         // Call the input processer each loop to check if the esc key is pressed
         InputHandler::process(window, deltaTime, mouse_callback);
@@ -194,13 +198,11 @@ int main() {
 
         // Print fps and coords
         const int sampleSize = 100;
+        float fpsValue;
         fpsSum += (1 / deltaTime);
         fpsSampCount += 1;
         if (fpsSampCount == sampleSize) {
-            std::cout << ceil((int)(fpsSum / sampleSize * 10)) / 10 << " fps " <<
-                "LastX|LastY: " << camera->Pitch << " | " << camera->Yaw <<
-                "[x,y,z] : " << camera->GetPositionCoords() << "                   "
-                << '\r';
+            fpsValue = ceil((int)(fpsSum / sampleSize * 10)) / 10;
             fpsSum = 0; fpsSampCount = 0;
         }
         
@@ -219,22 +221,27 @@ int main() {
         cube.Draw(backpackShader);
 
         // backpack.Draw(backpackShader);
+        // own scope for imgui idk why, lookinto it 
         {
-        ImGui::Begin("ImGui window");
-        ImGui::Text("Test text");
+        ImGui::Begin("Stats");
+        std::stringstream imGuiFPS;
+        imGuiFPS << "FPS: " << fpsValue;
+        ImGui::Text(imGuiFPS.str().c_str());
+        std::stringstream viewss;
+        viewss << "Pitch | Yaw: " << camera->Pitch << " " << camera->Yaw;
+        ImGui::Text(viewss.str().c_str());
+        std::stringstream pos_ss;
+        pos_ss << "[x,y,z] : " << camera->GetPositionCoords();
+        ImGui::Text(pos_ss.str().c_str());
         ImGui::End();
         }
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-
         // Will swap the colour buffers (2d buffer that contains colour values for each pixel in GLFW window)
         glfwSwapBuffers(window);
-
-
-        glfwPollEvents();
     }
-
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -255,10 +262,26 @@ void joystick_callback(int jid, int event){
 
 // Process mouse inputs // xpos and ypos origignally doubles 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-    InputHandler::mouse_callback_process(window, xposIn, yposIn, lastX, lastY, firstMouse);
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent(xposIn, yposIn);
+
+    if (!io.WantCaptureMouse)
+        InputHandler::mouse_callback_process(window, xposIn, yposIn, lastX, lastY, firstMouse);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent(button, action);
+
+    // Handle (SINCE WE DONT USE BUTTONS ITS FINE LIKE THIS)
+    // only imgui will handle click
+
+    // if (!io.WantCaptureMouse)
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    // TODO handle imgui callback
     InputHandler::scroll_callback_process(window, xoffset, yoffset);
 }
 

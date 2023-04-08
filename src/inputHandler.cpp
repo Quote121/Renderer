@@ -186,29 +186,11 @@ void InputHandler::process(GLFWwindow *window, double deltaTime, GLFWcursorposfu
     if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
     {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        glfwSetCursorPosCallback(window, NULL);
-        std::cout << "Want mouse: " << ImGui::GetIO().WantCaptureMouse << std::endl;
-        ImGui::CaptureMouseFromApp(true);
+
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
     {   
-        // Restore mouse callbacks
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        glfwSetCursorPosCallback(window, mouseCallbackFunction);
-        ImGui::CaptureMouseFromApp(false);
     }
 
-    // // Other
-    // // Used for interacting with ImGui window
-    // if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
-    // {
-    //     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    //     glfwSetCursorPosCallback(window, NULL);
-    // }
-    // if (glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE)
-    // {   
-    //     // Restore mouse callbacks
-    //     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //     glfwSetCursorPosCallback(window, mouseCallbackFunction);
-    // }
 }
