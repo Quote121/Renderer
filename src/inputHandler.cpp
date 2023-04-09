@@ -183,12 +183,12 @@ void InputHandler::process(GLFWwindow *window, double deltaTime, GLFWcursorposfu
     
     // Other
     // Used for interacting with ImGui window
-    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     }
-    else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
+    else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {   
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }

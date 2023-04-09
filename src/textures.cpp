@@ -125,7 +125,7 @@ int main() {
     std::cout << "Present" << present << std::endl;
     glfwSetJoystickCallback(joystick_callback);
 
-    // glfwSwapInterval(0); // This will disable vsync and remove frame rate cap
+    glfwSwapInterval(0); // This will disable vsync and remove frame rate cap
     
 
     // Initalise GLAD
@@ -139,7 +139,7 @@ int main() {
 
     Shader ourShader("assets/shaders/texture/shader1.vs", "assets/shaders/texture/shader1.fs");
     Shader backpackShader("assets/shaders/backpack/vertexShader.vs", "assets/shaders/backpack/fragmentShader.fs");
-
+    Shader ratShader("assets/shaders/square/vertexShader.vert", "assets/shaders/square/fragmentShader.frag");
     // 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
 
     // Z buffer for displaying correct trianges
@@ -153,8 +153,11 @@ int main() {
     // note in model loading if the model does not have things like
     // textures it will use the ones before, this needs to be fixed (default texture saying there is no texture defined)
     
-    // Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
-    Model cube("D:/git/Renderer/assets/models/cube.obj");
+    Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
+    // Model cube("D:/git/Renderer/assets/models/cube.obj");
+    Model cube("D:/git/Renderer/assets/models/Box/cubeWithTextures.obj");
+    Model rat("D:/git/Renderer/assets/models/Rat/rat.obj");
+
 
     int fpsSampCount = 0;
     float fpsSum = 0;
@@ -210,15 +213,55 @@ int main() {
         // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
         //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
         // FOV, aspect ratio (width/height), near distance, far distance
-        glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera->GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
-        backpackShader.use();
-        backpackShader.setMat4("view", view);
-        backpackShader.setMat4("projection", projection);
-        backpackShader.setMat4("model", model);
         
-        cube.Draw(backpackShader);
+        static float speed = 10.0f;
+        static glm::vec4 col = {0.5, 0.5, 0.5, 1};
+        static float col2[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+
+        {
+        ImGui::Begin("Controls");
+        ImGui::SliderFloat("Speed", &speed, 0.0f, 1000.0f);
+        ImGui::ColorPicker4("Colour", col2, 0, col2);
+        std::stringstream ss;
+        ss << "Colour: {" << col2[0] << ", " << col2[1] << ", " << col2[2] << ", " << col2[3] << "}";
+        ImGui::Text(ss.str().c_str());
+        ImGui::End();
+        }
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model , glm::radians(static_cast<float>(speed*glfwGetTime())), glm::vec3{0,1,0});
+
+        // backpackShader.use();
+        // backpackShader.setMat4("view", view);
+        // backpackShader.setMat4("projection", projection);
+        // backpackShader.setMat4("model", model);
+
+        ratShader.use();
+        ratShader.setMat4("view", view);
+        ratShader.setMat4("projection", projection);
+        ratShader.setMat4("model", model);
+        ratShader.setVec3("colour", glm::vec3{col2[0], col2[1], col2[2]});
+
+        rat.Draw(ratShader);
+
+        // for (unsigned int j = 0; j < 10; j++)
+        // {
+
+        //     for (unsigned int i = 0; i < 10; i++)
+        //     {
+        //         glm::mat4 model = glm::mat4(1.0f);
+        //         model = glm::translate(model, glm::vec3{2*i, 2*j, 0});
+        //         model = glm::rotate(model , glm::radians(static_cast<float>(speed*glfwGetTime())), glm::vec3{1,1,0});
+                
+                
+        //         backpackShader.setMat4("model", model);
+        //         cube.Draw(backpackShader);
+        //     }
+        //     // backpack.Draw(backpackShader);
+        // }        
+
 
         // backpack.Draw(backpackShader);
         // own scope for imgui idk why, lookinto it 
@@ -233,6 +276,7 @@ int main() {
         std::stringstream pos_ss;
         pos_ss << "[x,y,z] : " << camera->GetPositionCoords();
         ImGui::Text(pos_ss.str().c_str());
+        // ImGui::SliderFloat2("Speed: ", )
         ImGui::End();
         }
 
