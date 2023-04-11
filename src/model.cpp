@@ -39,7 +39,6 @@ void Model::processNode(aiNode *node, const aiScene *scene)
     {
         processNode(node->mChildren[i], scene);
     }
-    
 }
 
 // For each mesh in the scene we take the vertices, indecies, texture coords
@@ -133,10 +132,29 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType 
 }
 
 
-
 // For each mesh in our model, render with given shader
 void Model::Draw(Shader &shader)
 {
+    for (unsigned int i = 0; i < meshes.size(); i++)
+        meshes[i].Draw(shader);
+}
+
+// Use for only 1 mesh objects to load a custom texture
+// Should be used by models with no mtl
+void Model::DrawWithTexture(Shader &shader, std::string &path)
+{
+    // Clear loaded textures
+    // If any textures have been loaded we remove them to add our own specified by path
+    textures_loaded.clear();
+    meshes.clear();
+
+    Texture texture;
+    texture.id = TextureFromFile(path.c_str(), ".");
+    texture.type = "texture_diffuse";
+    texture.path = path.c_str();
+    meshes.at(0).textures.push_back(texture);
+    textures_loaded.push_back(texture); // add to loaded textures
+
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(shader);
 }

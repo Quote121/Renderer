@@ -40,7 +40,8 @@
 #include "stb_image/stb_image.h" // Image imports
 #include "camera.hpp" // Camera class
 #include "texture.hpp"
-#include "model.hpp"
+// #include "model.hpp"
+#include "object.hpp"
 
 #include "inputHandler.hpp"
 
@@ -153,15 +154,18 @@ int main() {
     // note in model loading if the model does not have things like
     // textures it will use the ones before, this needs to be fixed (default texture saying there is no texture defined)
     
-    Model backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
     // Model cube("D:/git/Renderer/assets/models/cube.obj");
-    Model cube("D:/git/Renderer/assets/models/Box/cubeWithTextures.obj");
-    Model rat("D:/git/Renderer/assets/models/Rat/rat.obj");
-
+    // Model cube("D:/git/Renderer/assets/models/Box/cubeWithTextures.obj");
+    // Model rat("D:/git/Renderer/assets/models/Rat/rat.obj");
+    
+    // Object rat("D:/git/Renderer/assets/models/Rat/rat.obj", pos, scale, rotation, colour);
+    Object backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
+    Object rat("D:/git/Renderer/assets/models/Rat/rat.obj");
+    rat.setShader(ratShader);
+    backpack.setShader(backpackShader);
 
     int fpsSampCount = 0;
     float fpsSum = 0;
-
 
     // IMGUI test
     IMGUI_CHECKVERSION();
@@ -230,40 +234,13 @@ int main() {
         ImGui::End();
         }
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model , glm::radians(static_cast<float>(speed*glfwGetTime())), glm::vec3{0,1,0});
+        rat.rotate(glm::radians(speed), glm::vec3{0,1,0});
+        
+        rat.Draw(view, projection, glm::vec3{col2[0], col2[1], col2[2]});
 
-        // backpackShader.use();
-        // backpackShader.setMat4("view", view);
-        // backpackShader.setMat4("projection", projection);
-        // backpackShader.setMat4("model", model);
-
-        ratShader.use();
-        ratShader.setMat4("view", view);
-        ratShader.setMat4("projection", projection);
-        ratShader.setMat4("model", model);
-        ratShader.setVec3("colour", glm::vec3{col2[0], col2[1], col2[2]});
-
-        rat.Draw(ratShader);
-
-        // for (unsigned int j = 0; j < 10; j++)
-        // {
-
-        //     for (unsigned int i = 0; i < 10; i++)
-        //     {
-        //         glm::mat4 model = glm::mat4(1.0f);
-        //         model = glm::translate(model, glm::vec3{2*i, 2*j, 0});
-        //         model = glm::rotate(model , glm::radians(static_cast<float>(speed*glfwGetTime())), glm::vec3{1,1,0});
-                
-                
-        //         backpackShader.setMat4("model", model);
-        //         cube.Draw(backpackShader);
-        //     }
-        //     // backpack.Draw(backpackShader);
-        // }        
+        backpack.Draw(view, projection);
 
 
-        // backpack.Draw(backpackShader);
         // own scope for imgui idk why, lookinto it 
         {
         ImGui::Begin("Stats");

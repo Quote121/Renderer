@@ -29,13 +29,16 @@ private:
     Mesh processMesh(aiMesh *mesh, const aiScene *scene);
     std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
 
-    // Helper funtion
-    unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
+    // Path is relative, default directory is current to the executable
+    unsigned int TextureFromFile(const char *path, const std::string &directory = ".", bool gamma = false);
 
 public:
     Model(const std::string& path);
     
-    void Draw(Shader &shader);
+    virtual void Draw(Shader &shader);
+
+    // TODO write definition
+    void DrawWithTexture(Shader &shader, std::string &path);
 };
 
 
