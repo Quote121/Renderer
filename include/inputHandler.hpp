@@ -7,6 +7,8 @@
 
 // For joystick readout
 //#define JOYSTICK_INPUT_DEBUG_READOUT
+// For mouse pos readout
+//#define MOUSE_CALLBACK_OUTPUT
 
 struct joyStick
 {
@@ -23,7 +25,10 @@ private:
     static float y_axis_deadzone;
 
     joyStick joystick;
+
 public:
+
+    static bool showMouse;
 
     /*
     Returns true or false if connected
@@ -35,7 +40,7 @@ public:
 
     static void joystick_callback_process(int jid, int event);
 
-    static void process(GLFWwindow* window, double deltaTime, GLFWcursorposfun mouseCallbackFunction);
+    static void process(GLFWwindow* window, double deltaTime);
 
     static void mouse_callback_process(GLFWwindow* window, double xposIn, double yposIn, float& lastX, float& lastY, bool& firstMouse);
 

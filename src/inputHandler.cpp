@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+bool InputHandler::showMouse = false;
+
 bool InputHandler::getJoyStick()
 {
     for (unsigned int i = 0; i < GLFW_JOYSTICK_LAST; i++)
@@ -37,6 +39,13 @@ void InputHandler::joystick_callback_process(int jid, int event)
 
 void InputHandler::mouse_callback_process(GLFWwindow *window, double xposIn, double yposIn, float& lastX, float& lastY, bool& firstMouse)
 {
+#ifdef MOUSE_CALLBACK_OUTPUT
+    std::cout << 
+        "XposIn: " << xposIn <<
+        "| YposIn: " << yposIn <<
+        "| lastX: " << lastX <<
+        "| lastY: " << lastY << std::endl;
+#endif // MOUSE_CALLBACK_OUTPUT
     Camera* camera = Camera::getInstance();
 
     // Cast xpos to float
@@ -75,7 +84,7 @@ void InputHandler::scroll_callback_process(GLFWwindow *window, double xoffset, d
     camera->ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-void InputHandler::process(GLFWwindow *window, double deltaTime, GLFWcursorposfun mouseCallbackFunction)
+void InputHandler::process(GLFWwindow *window, double deltaTime)
 {
     Camera* camera = Camera::getInstance();
 
@@ -181,16 +190,17 @@ void InputHandler::process(GLFWwindow *window, double deltaTime, GLFWcursorposfu
         camera->processKeyboard(Camera_Movement::DOWN, deltaTime);
 
     
-    // Other
-    // Used for interacting with ImGui window
+    // For toggling mouse visibility
+    // showMouse flag which is a static bool of inputHandler tells mouse callback to 
+    // redirect input to imgui intead of here
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
+        showMouse = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {   
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        showMouse = false;
     }
-
 }

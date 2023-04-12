@@ -10,7 +10,7 @@ class Object {
 
 private:
     std::string _objectPath;
-    glm::mat4 _model_mat; // Position and orientation
+    glm::mat4 _matrix; // Position and orientation
     glm::vec4 _colour;
     Shader* _shader = nullptr;
     // TODO MAKE CONSTRUCTOR PRIVATE
@@ -23,7 +23,7 @@ public:
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, pos_in);
         model = glm::scale(model, scale_in);
-        this->_model_mat = model;
+        this->_matrix = model;
 
         _model = new Model(objectPath);
     };
@@ -42,21 +42,21 @@ public:
 
     // Set shader already no need to change it
     // Can just pass in view and projection matrices
-    void Draw(glm::mat4 view, glm::mat4 projection, glm::vec3 colour = glm::vec3{0.0f, 0.0f, 0.0f});
+    void Draw(glm::mat4 view, glm::mat4 projection, glm::vec4 colour = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
 
     void scale(glm::vec3 scalar)
     {
-        this->_model_mat = glm::scale(_model_mat, scalar);
+        this->_matrix = glm::scale(_matrix, scalar);
     }
     
     void translate(glm::vec3 position)
     {
-        this->_model_mat = glm::translate(_model_mat, position);
+        this->_matrix = glm::translate(_matrix, position);
     }
 
     void rotate(float magnitude, glm::vec3 axis)
     {
-        this->_model_mat = glm::rotate(_model_mat, glm::radians(magnitude), axis);
+        this->_matrix = glm::rotate(_matrix, glm::radians(magnitude), axis);
     }
 
     //////////////////////////
@@ -66,7 +66,7 @@ public:
     //////////////////////////
     glm::mat4 getModel()
     {
-        return _model_mat;
+        return _matrix;
     }
     
     glm::vec3 getColour()

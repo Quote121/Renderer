@@ -31,14 +31,13 @@ private:
 
     // Path is relative, default directory is current to the executable
     unsigned int TextureFromFile(const char *path, const std::string &directory = ".", bool gamma = false);
-
 public:
-    Model(const std::string& path);
-    
-    virtual void Draw(Shader &shader);
+    void Draw(Shader &shader);
 
     // TODO write definition
     void DrawWithTexture(Shader &shader, std::string &path);
+
+    Model(const std::string& path);
 };
 
 

@@ -1,6 +1,6 @@
 #include "object.hpp"
 
-void Object::Draw(glm::mat4 view, glm::mat4 projection, glm::vec3 colour)
+void Object::Draw(glm::mat4 view, glm::mat4 projection, glm::vec4 colour)
 {
     if (_shader == nullptr)
     {
@@ -11,8 +11,8 @@ void Object::Draw(glm::mat4 view, glm::mat4 projection, glm::vec3 colour)
         _shader->use();
         _shader->setMat4("view", view);
         _shader->setMat4("projection", projection);
-        _shader->setMat4("model", _model_mat);
-        _shader->setVec3("colour", colour);
+        _shader->setMat4("model", _matrix);
+        _shader->setVec4("colour", colour);
         _model->Draw(*_shader);
     }
 }

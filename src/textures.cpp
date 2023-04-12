@@ -40,7 +40,6 @@
 #include "stb_image/stb_image.h" // Image imports
 #include "camera.hpp" // Camera class
 #include "texture.hpp"
-// #include "model.hpp"
 #include "object.hpp"
 
 #include "inputHandler.hpp"
@@ -59,10 +58,6 @@ const unsigned int WINDOW_HEIGHT = 600;
 const char* windowTitle = "OpenGL learning";
 
 // // Camera
-// Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-// float cameraYaw = -90.0f;
-// float cameraPitch = 0.0f;
-// float cameraFov = 45.0f;
 Camera* camera = Camera::getInstance(glm::vec3{0.0f, 0.0f, 3.0f});
 
 // Mouse position data (center of the screen by init
@@ -146,6 +141,10 @@ int main() {
     // Z buffer for displaying correct trianges
     glEnable(GL_DEPTH_TEST);
 
+    // To enable the alpha part of the color.
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    glEnable(GL_BLEND);
+
     // Removes the backfaces of faces
     // however the cubes in the current state are not correct, normals wrong way
     glEnable(GL_CULL_FACE);
@@ -164,8 +163,6 @@ int main() {
     rat.setShader(ratShader);
     backpack.setShader(backpackShader);
 
-    int fpsSampCount = 0;
-    float fpsSum = 0;
 
     // IMGUI test
     IMGUI_CHECKVERSION();
@@ -179,7 +176,7 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
-
+    bool show_demo_window = true;
     // Render loop to keep rendering until the program is closed
     // If GLFW has been instructed to close then run this function
     while (!glfwWindowShouldClose(window)){
@@ -191,18 +188,25 @@ int main() {
         glfwPollEvents();
 
         // Call the input processer each loop to check if the esc key is pressed
-        InputHandler::process(window, deltaTime, mouse_callback);
+        InputHandler::process(window, deltaTime);
         
         // Clearing colour buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // To show imgui demo window
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
 
+        /////////////
+        // FPS Count
+        /////////////
+        static int fpsSampCount = 0;
+        static float fpsSum = 0;
         // Print fps and coords
         const int sampleSize = 100;
         float fpsValue;
@@ -212,7 +216,6 @@ int main() {
             fpsValue = ceil((int)(fpsSum / sampleSize * 10)) / 10;
             fpsSum = 0; fpsSampCount = 0;
         }
-        
 
         // 2 View types of view, perspective and orthographic projections. We use perspective becuase we are human and have 2 eyes and so can measure depth
         //glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); // Makes stuff look 2d
@@ -221,23 +224,22 @@ int main() {
         glm::mat4 view = camera->GetViewMatrix();
         
         static float speed = 10.0f;
-        static glm::vec4 col = {0.5, 0.5, 0.5, 1};
-        static float col2[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+        static float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
         {
         ImGui::Begin("Controls");
         ImGui::SliderFloat("Speed", &speed, 0.0f, 1000.0f);
-        ImGui::ColorPicker4("Colour", col2, 0, col2);
+        ImGui::SliderFloat("Alpha", &col[3], 0.0f, 1.0f);
+        ImGui::ColorPicker4("Colour", col, 0, col);
         std::stringstream ss;
-        ss << "Colour: {" << col2[0] << ", " << col2[1] << ", " << col2[2] << ", " << col2[3] << "}";
+        ss << "Colour: {" << col[0] << ", " << col[1] << ", " << col[2] << ", " << col[3] << "}";
         ImGui::Text(ss.str().c_str());
         ImGui::End();
         }
 
         rat.rotate(glm::radians(speed), glm::vec3{0,1,0});
         
-        rat.Draw(view, projection, glm::vec3{col2[0], col2[1], col2[2]});
-
+        rat.Draw(view, projection, glm::vec4{col[0], col[1], col[2], col[3]});
         backpack.Draw(view, projection);
 
 
@@ -286,8 +288,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     ImGuiIO& io = ImGui::GetIO();
     io.AddMousePosEvent(xposIn, yposIn);
 
-    if (!io.WantCaptureMouse)
+    if (!io.WantCaptureMouse && !InputHandler::showMouse)
         InputHandler::mouse_callback_process(window, xposIn, yposIn, lastX, lastY, firstMouse);
+    else{
+        // As we are tabbed out set last mouse position to the one we left it at
+        lastX = xposIn;
+        lastY = yposIn;
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -295,15 +302,18 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     ImGuiIO& io = ImGui::GetIO();
     io.AddMouseButtonEvent(button, action);
 
-    // Handle (SINCE WE DONT USE BUTTONS ITS FINE LIKE THIS)
-    // only imgui will handle click
-
     // if (!io.WantCaptureMouse)
+    // mouseButtonCallback (We dont handle mouse buttons yet)
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     // TODO handle imgui callback
-    InputHandler::scroll_callback_process(window, xoffset, yoffset);
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseWheelEvent(xoffset, yoffset);
+
+    // Disable scroll when using gui
+    if (!io.WantCaptureMouse && !InputHandler::showMouse)
+        InputHandler::scroll_callback_process(window, xoffset, yoffset);
 }
 
 // Callback funtion when the function is resized
