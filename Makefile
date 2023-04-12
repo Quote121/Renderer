@@ -11,6 +11,11 @@
 #
 # TODO : dynamic library compiation
 
+#
+# Check if the environment variables are set in a way that 64 bit comes before 32 bit as compiling in 32 will cause linking error
+# this is for WINDOWS_NT
+# 
+
 CFLAGS = -m32 -Wall -Wextra
 CXXFLAGS = -std=c++20 -Wall -Wextra
 
@@ -27,8 +32,10 @@ ifeq ($(MODE), 32)
 ## Building for 32 bit
 else
 	GLFWVER = GLFW_64
-	CC = gcc
-	CXX = g++
+	#CC = gcc
+	#CXX = g++
+	CC = "C:\msys64\mingw64\bin\gcc.exe" 
+	CXX = "C:\msys64\mingw64\bin\g++.exe"
 	CFLAGS := $(filter-out -m32, $(CFLAGS))
 	CXXFLAGS := $(filter-out -m32, $(CXXFLAGS))
 endif

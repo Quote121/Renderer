@@ -68,7 +68,7 @@ public:
 
     void rotate(float magnitude, glm::vec3 axis)
     {
-        this->_matrix = glm::rotate(_matrix, multiplier*glm::radians(magnitude), axis);
+        this->_matrix = glm::rotate(_matrix, glm::radians(magnitude), axis);
     }
     
     void setShader(Shader &shader)
@@ -76,10 +76,10 @@ public:
         _shader = &shader;
     }
 
-    void setMultiplier(float value)
-    {
-        multiplier = value;
-    }
+    // void setMultiplier(float value)
+    // {
+    //     multiplier = value;
+    // }
 
 
     //////////////////////////

@@ -156,8 +156,8 @@ int main() {
     // note in model loading if the model does not have things like
     // textures it will use the ones before, this needs to be fixed (default texture saying there is no texture defined)
 
-    Object backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
-    Object rat("D:/git/Renderer/assets/models/Rat/rat.obj");
+    Object backpack("assets/models/Backpack/backpack.obj");
+    Object rat("assets/models/Rat/rat.obj");
 
     rat.setShader(ratShader);
     backpack.setShader(backpackShader);
