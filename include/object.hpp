@@ -17,9 +17,11 @@ private:
     Model* _model;
 
 public:
+
     Object(const std::string &objectPath, glm::vec3 pos_in = glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3 scale_in = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 colour_in = glm::vec3{0.0f, 0.0f, 0.0f})
         : _objectPath{objectPath}, _colour{colour_in, 1.0f}
     {
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, pos_in);
         model = glm::scale(model, scale_in);
@@ -27,6 +29,16 @@ public:
 
         _model = new Model(objectPath);
     };
+
+    // static void Create(const std::string &objectPath, Shader &shader, glm::vec3 pos_in = glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3 scale_in = glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec3 colour_in = glm::vec3{0.0f, 0.0f, 0.0f})
+    // {
+    //     std::unique_ptr<Object> object = std::make_unique<Object>(objectPath, pos_in, scale_in, colour_in);
+        
+    //     setShader(shader);
+        
+    //     Scene* s = Scene::getInstance();
+    //     s->addObject(object);
+    // }
 
     ~Object()
     {
@@ -56,8 +68,19 @@ public:
 
     void rotate(float magnitude, glm::vec3 axis)
     {
-        this->_matrix = glm::rotate(_matrix, glm::radians(magnitude), axis);
+        this->_matrix = glm::rotate(_matrix, multiplier*glm::radians(magnitude), axis);
     }
+    
+    void setShader(Shader &shader)
+    {
+        _shader = &shader;
+    }
+
+    void setMultiplier(float value)
+    {
+        multiplier = value;
+    }
+
 
     //////////////////////////
     //
@@ -80,8 +103,4 @@ public:
         return _colour;
     }
 
-    void setShader(Shader &shader)
-    {
-        _shader = &shader;
-    }
 };

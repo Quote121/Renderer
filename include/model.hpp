@@ -31,6 +31,7 @@ private:
 
     // Path is relative, default directory is current to the executable
     unsigned int TextureFromFile(const char *path, const std::string &directory = ".", bool gamma = false);
+    
 public:
     void Draw(Shader &shader);
 

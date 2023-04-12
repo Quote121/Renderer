@@ -35,6 +35,8 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
+#include <memory>
+
 // Other
 #include "shader.hpp" // Custom shader header
 #include "stb_image/stb_image.h" // Image imports
@@ -53,8 +55,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void joystick_callback(int jid, int event);
 
 // Window constatns
-const unsigned int WINDOW_WIDTH = 800;
-const unsigned int WINDOW_HEIGHT = 600;
+const unsigned int WINDOW_WIDTH = 1280;
+const unsigned int WINDOW_HEIGHT = 720;
 const char* windowTitle = "OpenGL learning";
 
 // // Camera
@@ -93,6 +95,7 @@ int main() {
     // Create before callbacks as they use it
     // Get the only instance of camera
     
+    std::unique_ptr<std::string> test = std::make_unique<std::string>("HellO");
 
     if (window == NULL){
         // Error
@@ -152,14 +155,10 @@ int main() {
 
     // note in model loading if the model does not have things like
     // textures it will use the ones before, this needs to be fixed (default texture saying there is no texture defined)
-    
-    // Model cube("D:/git/Renderer/assets/models/cube.obj");
-    // Model cube("D:/git/Renderer/assets/models/Box/cubeWithTextures.obj");
-    // Model rat("D:/git/Renderer/assets/models/Rat/rat.obj");
-    
-    // Object rat("D:/git/Renderer/assets/models/Rat/rat.obj", pos, scale, rotation, colour);
+
     Object backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
     Object rat("D:/git/Renderer/assets/models/Rat/rat.obj");
+
     rat.setShader(ratShader);
     backpack.setShader(backpackShader);
 
@@ -225,6 +224,7 @@ int main() {
         
         static float speed = 10.0f;
         static float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+
 
         {
         ImGui::Begin("Controls");
