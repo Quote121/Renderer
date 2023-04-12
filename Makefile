@@ -32,10 +32,8 @@ ifeq ($(MODE), 32)
 ## Building for 32 bit
 else
 	GLFWVER = GLFW_64
-	#CC = gcc
-	#CXX = g++
-	CC = "C:\msys64\mingw64\bin\gcc.exe" 
-	CXX = "C:\msys64\mingw64\bin\g++.exe"
+	CC = gcc
+	CXX = g++
 	CFLAGS := $(filter-out -m32, $(CFLAGS))
 	CXXFLAGS := $(filter-out -m32, $(CXXFLAGS))
 endif
