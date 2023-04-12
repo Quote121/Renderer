@@ -158,9 +158,12 @@ int main() {
 
     Object backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
     Object rat("D:/git/Renderer/assets/models/Rat/rat.obj");
+    Object container("assets/models/ShippingContainer/container.obj");
 
+    container.setShader(backpackShader);
     rat.setShader(ratShader);
     backpack.setShader(backpackShader);
+    backpack.translate({12.0f, 0.0f, 0.0f});
 
 
     // IMGUI test
@@ -241,6 +244,7 @@ int main() {
         
         rat.Draw(view, projection, glm::vec4{col[0], col[1], col[2], col[3]});
         backpack.Draw(view, projection);
+        container.Draw(view, projection);
 
 
         // own scope for imgui idk why, lookinto it 
