@@ -17,3 +17,35 @@
 // this needs to be put on a new branch 
 //
 ///////////////
+
+#ifndef MENUES_HPP
+#define MENUES_HPP
+
+// IMGUI
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
+#include <iostream>
+#include <sstream>
+
+#include "scene.hpp"
+#include "object.hpp"
+#include "camera.hpp"
+
+class Menues
+{
+
+public:
+    static void display(Camera* cam);
+    static void test()
+    {
+        ImGui::Begin("Test window");
+        ImGui::Text("This is a test window");
+        ImGui::End();
+    }
+
+
+};
+
+#endif // MENUES_HPP

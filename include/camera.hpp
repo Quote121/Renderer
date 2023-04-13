@@ -148,8 +148,6 @@ private:
 	// Singleton
 	static Camera *pinstance_;
 
-
-
 	Camera(const Camera&) = delete;
 	Camera& operator=(const Camera&) = delete;
 

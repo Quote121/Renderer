@@ -42,9 +42,10 @@
 #include "stb_image/stb_image.h" // Image imports
 #include "camera.hpp" // Camera class
 #include "texture.hpp"
-#include "object.hpp"
-
 #include "inputHandler.hpp"
+
+#include "menues.hpp"
+#include "scene.hpp"
 
 // Prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -95,8 +96,6 @@ int main() {
     // Create before callbacks as they use it
     // Get the only instance of camera
     
-    std::unique_ptr<std::string> test = std::make_unique<std::string>("HellO");
-
     if (window == NULL){
         // Error
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -124,7 +123,7 @@ int main() {
     std::cout << "Present" << present << std::endl;
     glfwSetJoystickCallback(joystick_callback);
 
-    glfwSwapInterval(0); // This will disable vsync and remove frame rate cap
+    // glfwSwapInterval(0); // This will disable vsync and remove frame rate cap
     
 
     // Initalise GLAD
@@ -153,17 +152,10 @@ int main() {
     glEnable(GL_CULL_FACE);
 
 
-    // note in model loading if the model does not have things like
-    // textures it will use the ones before, this needs to be fixed (default texture saying there is no texture defined)
-
-    Object backpack("D:/git/Renderer/assets/models/Backpack/backpack.obj");
-    Object rat("D:/git/Renderer/assets/models/Rat/rat.obj");
-    Object container("assets/models/ShippingContainer/container.obj");
-
-    container.setShader(backpackShader);
-    rat.setShader(ratShader);
-    backpack.setShader(backpackShader);
-    backpack.translate({12.0f, 0.0f, 0.0f});
+    Scene* scene = Scene::getInstance();
+    scene->addObject("assets/models/ShippingContainer/container.obj", backpackShader);
+    scene->addObject("assets/models/Rat/rat.obj", ratShader);
+    // scene->addObject("assets/models/ShippingContainer/container.obj", backpackShader);
 
 
     // IMGUI test
@@ -189,6 +181,8 @@ int main() {
 
         glfwPollEvents();
 
+        // ImGui::ShowDemoWindow();
+
         // Call the input processer each loop to check if the esc key is pressed
         InputHandler::process(window, deltaTime);
         
@@ -199,10 +193,6 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        // To show imgui demo window
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
 
         /////////////
         // FPS Count
@@ -225,26 +215,13 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera->GetViewMatrix();
         
-        static float speed = 10.0f;
-        static float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+        // static float speed = 10.0f;
+        // static float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
-
-        {
-        ImGui::Begin("Controls");
-        ImGui::SliderFloat("Speed", &speed, 0.0f, 1000.0f);
-        ImGui::SliderFloat("Alpha", &col[3], 0.0f, 1.0f);
-        ImGui::ColorPicker4("Colour", col, 0, col);
-        std::stringstream ss;
-        ss << "Colour: {" << col[0] << ", " << col[1] << ", " << col[2] << ", " << col[3] << "}";
-        ImGui::Text(ss.str().c_str());
-        ImGui::End();
-        }
-
-        rat.rotate(glm::radians(speed), glm::vec3{0,1,0});
         
-        rat.Draw(view, projection, glm::vec4{col[0], col[1], col[2], col[3]});
-        backpack.Draw(view, projection);
-        container.Draw(view, projection);
+        Menues::display(camera);
+        // Menues::test();
+        scene->drawObjects(view, projection);
 
 
         // own scope for imgui idk why, lookinto it 
@@ -262,6 +239,7 @@ int main() {
         // ImGui::SliderFloat2("Speed: ", )
         ImGui::End();
         }
+
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
