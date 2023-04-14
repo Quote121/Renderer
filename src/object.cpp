@@ -2,6 +2,7 @@
 
 void Object::Draw(glm::mat4 view, glm::mat4 projection, glm::vec4 colour)
 {
+    glm::mat4 result = glm::mat4(1.0f) * getRotateMat4(_rotation) * getPositionMat4(_position) * getScaleMat4(_scaleScalar) * getScaleMat4(_scale);
     
     if (_shader == nullptr)
     {
@@ -13,60 +14,49 @@ void Object::Draw(glm::mat4 view, glm::mat4 projection, glm::vec4 colour)
         _shader->use();
         _shader->setMat4("view", view);
         _shader->setMat4("projection", projection);
-        _shader->setMat4("model", _matrix);
+        _shader->setMat4("model", result);
         _shader->setVec4("colour", colour);
         _model->Draw(*_shader);
     }
 }
 
-void Object::rotate(float x, float y, float z)
+/**
+ * pass a vec3 and get a mat4 result
+*/
+glm::mat4 Object::getRotateMat4(glm::vec3 angles)
 {
-    this->_matrix = glm::rotate(_matrix, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
-    this->_matrix = glm::rotate(_matrix, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
-    this->_matrix = glm::rotate(_matrix, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 rotation = glm::mat4{
+        {glm::cos(angles.z) * glm::cos(angles.y), glm::cos(angles.z)*glm::sin(angles.y)*glm::sin(angles.x) - glm::sin(angles.z)*glm::cos(angles.x), glm::cos(angles.z)*glm::sin(angles.y)*glm::cos(angles.x) + glm::sin(angles.z)*glm::sin(angles.x), 0 },
+        {glm::sin(angles.z)*glm::cos(angles.y), glm::sin(angles.z)*glm::sin(angles.y)*glm::sin(angles.x) + glm::cos(angles.z)*glm::cos(angles.x), glm::sin(angles.z)*glm::sin(angles.y)*glm::cos(angles.x) - glm::cos(angles.z)*glm::sin(angles.x), 0 },
+        {-glm::sin(angles.y), glm::cos(angles.y)*glm::sin(angles.x), glm::cos(angles.y)*glm::cos(angles.x), 0},
+        {0, 0, 0, 1}
+    };
+    return rotation;
 }
 
-void Object::rotate(glm::vec3 rotation)
+glm::mat4 Object::getPositionMat4(glm::vec3 position)
 {
-    this->_matrix = glm::rotate(_matrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    this->_matrix = glm::rotate(_matrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    this->_matrix = glm::rotate(_matrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 matrix(1.0f);
+    matrix[3] = glm::vec4(position, 1.0f);
+    return matrix;
 }
 
-void Object::scale(float factor)
+glm::mat4 Object::getScaleMat4(glm::vec3 scale)
 {
-    _matrix = glm::scale(_matrix, glm::vec3{factor*1.0f, factor*1.0f, factor*1.0f});
+    // identity
+    glm::mat4 matrix(1.0f);
+    matrix[0][0] *= scale.x;
+    matrix[1][1] *= scale.y;
+    matrix[2][2] *= scale.z;
+
+    return matrix;
 }
 
-void Object::scale(glm::vec3 factor)
+glm::mat4 Object::getScaleMat4(float scale)
 {
-    _matrix = glm::scale(_matrix, factor);
-}
-
-glm::vec3 Object::getScale()
-{
-    glm::vec3 scale;
-    scale.x = glm::length(_matrix[0]);
-    scale.y = glm::length(_matrix[1]);
-    scale.z = glm::length(_matrix[2]);
-    return scale;
-}
-
-void Object::setScale(glm::vec3 newScale)
-{
-    _matrix[0] *= newScale.x / getScale().x;
-    _matrix[1] *= newScale.y / getScale().y;
-    _matrix[2] *= newScale.z / getScale().z;
-}
-
-void Object::setScale(float newScale)
-{
-    _matrix[0] *= newScale / glm::length(getScale());
-    _matrix[1] *= newScale / glm::length(getScale());
-    _matrix[2] *= newScale / glm::length(getScale());
-}
-
-void Object::setPosition(glm::vec3 position)
-{
-    _matrix[3] = glm::vec4(position, 1.0f);
+    glm::mat4 matrix(1.0f);
+    matrix[0][0] *= scale;
+    matrix[1][1] *= scale;
+    matrix[2][2] *= scale;
+    return matrix;
 }

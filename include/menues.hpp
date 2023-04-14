@@ -38,14 +38,6 @@ class Menues
 
 public:
     static void display(Camera* cam);
-    static void test()
-    {
-        ImGui::Begin("Test window");
-        ImGui::Text("This is a test window");
-        ImGui::End();
-    }
-
-
 };
 
 #endif // MENUES_HPP
