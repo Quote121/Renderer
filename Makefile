@@ -24,7 +24,7 @@ ifdef DEBUG
 	CFLAGS += -g
 endif
 
-PROGRAM = textures.exe
+PROGRAM = main.exe
 SRCDIR = src
 BUILDDIR = release
 TARGET = $(CURDIR)/$(BUILDDIR)/$(PROGRAM)
