@@ -1,8 +1,3 @@
-# By default the 32 bit version will be compiled unless specifed in build commands
-#  
-# For setting release mode to 64-bit use the MODE=64 when using make
-# e.g. make MODE=64 run
-# 
 # For debug mode use DEBUG=1 in the same way as MODE
 # 
 # clean to clean release folder of .o and exe
@@ -11,32 +6,16 @@
 #
 # TODO : dynamic library compiation
 
-#
+# For MINGW
 # Check if the environment variables are set in a way that 64 bit comes before 32 bit as compiling in 32 will cause linking error
 # this is for WINDOWS_NT
 # 
 
-CFLAGS = -m32 -Wall -Wextra
+CFLAGS = -Wall -Wextra
 CXXFLAGS = -std=c++20 -Wall -Wextra
 
-# For 64-bit version
-# make MODE=64
-ifeq ($(MODE), 32)
-	GLFWVER = GLFW_32
-	CC = gcc
-	ifeq ($(OS),Windows_NT)
-		CXX = i686-w64-mingw32-g++.exe
-	else
-		CXX = g++
-	endif
-## Building for 32 bit
-else
-	GLFWVER = GLFW_64
-	CC = gcc
-	CXX = g++
-	CFLAGS := $(filter-out -m32, $(CFLAGS))
-	CXXFLAGS := $(filter-out -m32, $(CXXFLAGS))
-endif
+CC = gcc
+CXX = g++
 
 # For debugging
 # make DEBUG=1
@@ -61,18 +40,28 @@ CPP_OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(CPP_SOURCES))
 
 
 # Static library for glfw
-LIBFLAGS = -lopengl32
-LIBFLAGS += $(CURDIR)/libs/$(GLFWVER)/libglfw3.a ## Used full path as linker flag -lglfw3 not recognied
-LIBFLAGS += -lgdi32
-LIBFLAGS += $(CURDIR)/libs/assimp/libassimp.a ## Used full path as linker flag -lassimp not recognied
-LIBFLAGS += $(CURDIR)/libs/assimp/libzlibstatic.a
+ifeq ($(OS),Windows_NT)
+	# Static library for glfw
+	LIBFLAGS = -lopengl32 -lgdi32
+	LIBFLAGS += $(CURDIR)/libs/GLFW_64/libglfw3.a ## Used full path as linker flag -lglfw3 not recognied
+	LIBFLAGS += $(CURDIR)/libs/assimp/libassimp.a ## Used full path as linker flag -lassimp not recognied
+	LIBFLAGS += $(CURDIR)/libs/assimp/libzlibstatic.a
+
+	LIBRARYPATHS = -L$(CURDIR)/libs/GLFW_64
+else
+	## Used full path as linker flag -lglfw3 not recognied
+	LIBFLAGS += $(CURDIR)/libs/GLFW_linux/libglfw3.a 
+	LIBFLAGS += /usr/lib/x86_64-linux-gnu/libassimp.so
+	LIBFLAGS += -lGL -lGLU -lX11 -ldl -pthread## Linux
+
+	LIBRARYPATHS = -L$(CURDIR)/libs/GLFW_linux
+endif
+
 
 # Library DIR and Include DIR
 INCLUDEPATHS = -I$(CURDIR)/include
 INCLUDEPATHS += -I$(CURDIR)/include/imgui
-LIBRARYPATHS = -L$(CURDIR)/libs/$(GLFWVER)
 LIBRARYPATHS = -L$(CURDIR)/libs/assimp
-
 
 $(info =============================)
 $(info CFLAGS : $(CFLAGS))
@@ -80,7 +69,6 @@ $(info CXXFLAGS : $(CXXFLAGS))
 $(info CC : $(CC))
 $(info CXX : $(CXX))
 $(info LIBFLAGS : $(LIBFLAGS))
-$(info GLDWVER : $(GLFWVER))
 $(info INCLUDEPATHS : $(INCLUDEPATHS))
 $(info LIBRARYPATHS : $(LIBRARYPATHS))
 $(info =============================)
