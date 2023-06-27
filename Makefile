@@ -42,10 +42,11 @@ CPP_OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(CPP_SOURCES))
 # Static library for glfw
 ifeq ($(OS),Windows_NT)
 	# Static library for glfw
-	LIBFLAGS = -lopengl32 -lgdi32
+	LIBFLAGS = -lopengl32
 	LIBFLAGS += $(CURDIR)/libs/GLFW_64/libglfw3.a ## Used full path as linker flag -lglfw3 not recognied
 	LIBFLAGS += $(CURDIR)/libs/assimp/libassimp.a ## Used full path as linker flag -lassimp not recognied
 	LIBFLAGS += $(CURDIR)/libs/assimp/libzlibstatic.a
+	LIBFLAGS += -lgdi32
 
 	LIBRARYPATHS = -L$(CURDIR)/libs/GLFW_64
 else
