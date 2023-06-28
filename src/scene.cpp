@@ -17,7 +17,7 @@ void Scene::addObject(const std::string &objectPath, Shader &shader, glm::vec3 p
     scene_objects.push_back(std::move(object));
 }
 
-
+// For unique_ptr (will not work without passing the ownership)
 bool Scene::removeObject(std::unique_ptr<Object> &obj)
 {
     // scene_objects.ge
@@ -27,4 +27,23 @@ bool Scene::removeObject(std::unique_ptr<Object> &obj)
     }
     scene_objects.erase(result);
     return true;
+}
+
+bool Scene::removeObject(Object &obj)
+{
+
+    auto it = std::find_if(scene_objects.begin(), scene_objects.end(), [&](const std::unique_ptr<Object>& ptr) {
+        return ptr.get() == &obj;
+    });
+
+    if (it == scene_objects.end())
+    {
+        std::cerr << "not found" << std::endl;
+        return false;
+    }
+    else{
+        std::cout << "Deleted: " << (*it)->getFilePath() << std::endl;
+        scene_objects.erase(it);
+        return true;
+    }
 }

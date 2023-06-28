@@ -1,5 +1,10 @@
 #include "menues.hpp"
 
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 void Menues::display(Camera* cam)
 {
     
@@ -16,12 +21,20 @@ void Menues::display(Camera* cam)
         {
             Object* obj = obj_ptr.get();
 
-            if (ImGui::TreeNode((void*)(intptr_t)i, "Object %d", i))
+            // Get the object name from the filepath specifed
+            std::stringstream ss_filePath{obj->getFilePath()};
+            std::string segment;
+            std::vector<std::string> seglist;
+            while(std::getline(ss_filePath, segment, '/')) { seglist.push_back(segment); }
+
+            // Give the object a number and its filename
+            if (ImGui::TreeNode((void*)(intptr_t)i, "Object %d - %s", i, seglist[seglist.size()-1].c_str()))
             {
-                // ImGui::Text(obj->)
+
                 std::stringstream ss_name;
-                ss_name << "Box [" << i << "] controls";
-                ImGui::Text("Controls for box: ");
+                ss_name << "Controls for " << seglist[seglist.size()-1] << " : ";
+
+                ImGui::Text(ss_name.str().c_str());
                 std::stringstream ss_pos;
                 ss_pos << "Box " << i << " pos : [X:Y:Z] = " << obj->_position.x << "," << obj->_position.y << "," << obj->_position.z;
                 ImGui::Text(ss_pos.str().c_str());
@@ -46,10 +59,29 @@ void Menues::display(Camera* cam)
                 ImGui::SliderFloat("Scale", &obj->_scaleScalar, 0.1f, 10.0f);
                 
                 ImGui::TreePop();
+
+                if (ImGui::Button("Delete"))
+                {
+                    // since we have deleted an object we need to re render the imgui list (break)
+                    scene->removeObject(*obj);
+                    break;
+                }
+                
             }
             i++;
         }
         ImGui::TreePop();
     }
+
+    // List box of spawnable objects
+    static int listbox_currentitem = 0;
+    const char* items[] = { "Rat", "Cargo" };
+    ImGui::ListBox("Lists:\n", &listbox_currentitem, items, IM_ARRAYSIZE(items));
+
+    if (ImGui::Button("Spawn"))
+    {
+        ImGui::Text("In development");
+    }
+
     ImGui::End();
 }

@@ -27,7 +27,7 @@ endif
 PROGRAM = main.exe
 SRCDIR = src
 BUILDDIR = release
-TARGET = $(CURDIR)/$(BUILDDIR)/$(PROGRAM)
+TARGET = $(CURDIR)/$(PROGRAM)
 
 $(info Target : $(TARGET))
 C_SOURCES = $(wildcard $(SRCDIR)/*.c)

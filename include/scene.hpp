@@ -46,6 +46,7 @@ public:
     // Returns true is found and removed
     // false otherwise
     bool removeObject(std::unique_ptr<Object> &obj);
+    bool removeObject(Object &obj);
 
     std::vector<std::unique_ptr<Object>> const& getObjects() const
     {

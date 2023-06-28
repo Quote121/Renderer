@@ -237,7 +237,6 @@ int main() {
         std::stringstream pos_ss;
         pos_ss << "[x,y,z] : " << camera->GetPositionCoords();
         ImGui::Text(pos_ss.str().c_str());
-        // ImGui::SliderFloat2("Speed: ", )
         ImGui::End();
         }
 

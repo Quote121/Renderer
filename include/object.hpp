@@ -63,6 +63,10 @@ public:
         return _colour;
     }
 
+    std::string getFilePath(){
+        return _objectPath;
+    }
+
 
 
     /* get mat4 from 3 angles */
