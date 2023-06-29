@@ -138,6 +138,8 @@ int main() {
     Shader ourShader("assets/shaders/texture/shader1.vs", "assets/shaders/texture/shader1.fs");
     Shader backpackShader("assets/shaders/backpack/vertexShader.vs", "assets/shaders/backpack/fragmentShader.fs");
     Shader ratShader("assets/shaders/square/vertexShader.vert", "assets/shaders/square/fragmentShader.frag");
+    Shader missing("assets/shaders/default/missing.vert", "assets/shaders/default/missing.frag");
+
     // 1,2 are width. 3,4 are height. 5,6 are near and far plane distance
 
     // Z buffer for displaying correct trianges
@@ -154,6 +156,7 @@ int main() {
 
     Scene* scene = Scene::getInstance();
     scene->addObject("assets/models/ShippingContainer/container.obj", backpackShader);
+    scene->addObject("assets/models/Backpack/backpack.obj", backpackShader);
     scene->addObject("assets/models/Rat/rat.obj", ratShader);
     // scene->addObject("assets/models/ShippingContainer/container.obj", backpackShader);
 

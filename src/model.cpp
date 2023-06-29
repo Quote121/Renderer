@@ -128,6 +128,19 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType 
             textures_loaded.push_back(texture); // add to loaded textures
         }
     }
+
+    // // If there are no textures then we load missing
+    // if (!mat->GetTextureCount(type))
+    // {
+    //     std::cout << "Model loading missing jpg: " << mat->GetTextureCount(type) << " name " << typeName << std::endl;
+    //     Texture texture;
+    //     texture.id = TextureFromFile("/assets/textures/missing.jpg", ".");
+    //     texture.type = typeName;
+    //     texture.path = "/assets/textures/missing.jpg";
+    //     textures.push_back(texture);
+    //     textures_loaded.push_back(texture); // add to loaded textures
+    // }
+
     return textures;
 }
 

@@ -41,18 +41,19 @@ void Menues::display(Camera* cam)
                 std::stringstream ss_distance;
                 ss_distance << "Box " << i << " is " << glm::length(obj->_position-cam->Position) << " units away from you.";
                 ImGui::Text(ss_distance.str().c_str());
+
+                ImGui::NewLine();
+                ImGui::Text("Position:\n");
                 ImGui::SliderFloat("X pos: ", &obj->_position.x, -100.0f, 100.0f);
                 ImGui::SliderFloat("Y pos: ", &obj->_position.y, -100.0f, 100.0f);
                 ImGui::SliderFloat("Z pos: ", &obj->_position.z, -100.0f, 100.0f);
 
-                ImGui::NewLine();
-
+                ImGui::Text("Rotation:\n");
                 ImGui::SliderFloat("X rotation", &obj->_rotation.x, -10.0f, 100.0f);
                 ImGui::SliderFloat("Y rotation", &obj->_rotation.y, -10.0f, 10.0f);
                 ImGui::SliderFloat("Z rotation", &obj->_rotation.z, -10.0f, 10.0f);
 
-                ImGui::NewLine();
-
+                ImGui::Text("Scale:\n");
                 ImGui::SliderFloat("X scale", &obj->_scale.x, 0.1f, 10.0f);
                 ImGui::SliderFloat("Y scale", &obj->_scale.y, 0.1f, 10.0f);
                 ImGui::SliderFloat("Z scale", &obj->_scale.z, 0.1f, 10.0f);
