@@ -35,6 +35,7 @@ public:
 
     ~Object()
     {
+        std::cout << "Object destructor called" << std::endl;
         delete(_model);
         _shader = nullptr;
         _model = nullptr;

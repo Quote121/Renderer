@@ -2,10 +2,17 @@
 
 #include "model.hpp"
 
+#define DEBUG_LOADING_MGS 1
 
 Model::Model(const std::string& path)
 {
+#ifdef DEBUG_LOADING_MGS
+    std::cout << "Started loading: " << path << std::endl;
+#endif
     loadModel(path.c_str());
+#ifdef DEBUG_LOADING_MGS
+    std::cout << "Finished loading: " << path << std::endl;
+#endif
 }
 
 void Model::loadModel(std::string path)

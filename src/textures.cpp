@@ -157,6 +157,8 @@ int main() {
     Scene* scene = Scene::getInstance();
     scene->addObject("assets/models/ShippingContainer/container.obj", backpackShader);
     scene->addObject("assets/models/Backpack/backpack.obj", backpackShader);
+    scene->addObject("assets/models/Backpack/backpack.obj", backpackShader, {3.0f, 0.0f, 0.0f});
+    scene->addObject("assets/models/Backpack/backpack.obj", backpackShader, {0.0f, 4.0f, 0.0f});
     scene->addObject("assets/models/Rat/rat.obj", ratShader);
     // scene->addObject("assets/models/ShippingContainer/container.obj", backpackShader);
 

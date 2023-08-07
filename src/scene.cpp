@@ -29,7 +29,7 @@ bool Scene::removeObject(std::unique_ptr<Object> &obj)
     return true;
 }
 
-bool Scene::removeObject(Object &obj)
+bool Scene::removeObject(const Object &obj)
 {
 
     auto it = std::find_if(scene_objects.begin(), scene_objects.end(), [&](const std::unique_ptr<Object>& ptr) {
@@ -43,7 +43,7 @@ bool Scene::removeObject(Object &obj)
     }
     else{
         std::cout << "Deleted: " << (*it)->getFilePath() << std::endl;
-        scene_objects.erase(it);
+        scene_objects.erase(it); // remove reference in the object list
         return true;
     }
 }

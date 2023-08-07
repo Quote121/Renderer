@@ -10,6 +10,8 @@
 # Check if the environment variables are set in a way that 64 bit comes before 32 bit as compiling in 32 will cause linking error
 # this is for WINDOWS_NT
 # 
+# Note for compilation in release the same file structure found in src must be maintained, this will be updated in 
+# makefile at some later point so it is done automatically
 
 CFLAGS = -Wall -Wextra
 CXXFLAGS = -std=c++20 -Wall -Wextra
@@ -30,14 +32,16 @@ BUILDDIR = release
 TARGET = $(CURDIR)/$(PROGRAM)
 
 $(info Target : $(TARGET))
-C_SOURCES = $(wildcard $(SRCDIR)/*.c)
+# C_SOURCES = $(wildcard $(SRCDIR)/*.c)
+C_SOURCES = $(shell find $(SRCDIR)/ -name *.c)
 $(info $(C_SOURCES) found!)
 C_OBJECTS = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(C_SOURCES))
+$(info OBJECTS:::::$(C_OBJECTS))
 
-CPP_SOURCES = $(wildcard $(SRCDIR)/*.cpp)
+# Using shell find command to find all cpp files instead of a recursive solution
+CPP_SOURCES = $(shell find $(SRCDIR)/ -name *.cpp)
 $(info $(CPP_SOURCES) found!)
 CPP_OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(CPP_SOURCES))
-
 
 # Static library for glfw
 ifeq ($(OS),Windows_NT)
